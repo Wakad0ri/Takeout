@@ -33,17 +33,13 @@ TakeOut：
                     - sky_server：服务端模块，存放一些服务类，比如员工服务，分类服务，菜品服务，套餐服务，订单服务，地址服务...
             2、使用Git进行项目代码的版本控制：
                 - 创建Git本地仓库：
-                    在IDEA中，右键点击项目
-                    选择 Git -> Add（或者使用快捷键 Ctrl + Alt + A）
-                    这会将项目文件添加到Git的暂存区
-
-                    在IDEA中，点击 VCS -> Commit（或者使用快捷键 Ctrl + K）
-                    在提交窗口中：
-                    选择要提交的文件
-                    填写提交信息（比如："Initial commit"）
-                    点击"Commit"按钮
+                    在菜单找到VCS，点击创建Git仓库
+                    选择项目目录
 
                 - 创建Git远程仓库
+                    在Github上创建一个空的仓库，点击New repository，勾选with a README文件
+                    然后Create repository
+
                 - 将本地文件推送到Git远程仓库
                     首先，在IDEA中关联远程仓库：
                     点击菜单 VCS -> Git -> Remotes...
