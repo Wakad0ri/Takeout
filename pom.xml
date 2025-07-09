@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+TakeOut：
+
+    专题一：软件开发流程
+        需求分析（需求规格说明书，产品原型）  -> 设计（UI设计，数据库设计，接口设计）
+        -> 编码（项目代码，单元测试）       -> 测试（测试用例，测试报告）     -> 软件环境安装，配置
+
+    专题二：需求分析
+        一、项目介绍：
+            - 定位：专门为餐饮企业（餐厅，饭店）定制的一款软件产品
+                · 管理端 - 外卖商家使用
+                · 用户端 - 点餐用户使用
+            - 功能架构：体现项目中厌恶功能模块
+                · 管理段：员工管理 分类管理 菜品管理 套餐管理 订单管理 工作台 数据统计 来单提醒
+                · 用户端：微信登录 商品浏览 购物车 用户下单 微信支付 历史订单 地址管理 用户催单
+            - 产品原型：用于展示项目的业务功能，一般由产品经理进行设计
+            - 技术选型：展示项目中使用到的技术框架和中间件等
+                · 用户层：node.js vue.js ElementUI 微信小程序 apache-echarts
+                · 网关层：Nginx
+                · 应用层：SpringBoot SpringMVC SpringTask httpclient SpringCache JWT...
+                · 数据层：MySQL Redis MyBatis...
+                · 工具：Git Maven Junit Postman
+
+    专题三： 设计
+        一、前端：管理端（Web）；用户端（小程序）
+            前端工程基于 nginx 运行，
+        二、后端：
+            1、创建初始项目结构：
+                - TakeOut：maven 父工程，统一管理依赖版本，聚合其他子模块
+                    - sky_common：公共模块，存放一些公共的类，比如工具类，常量类，枚举类，异常类，日志类，配置类...
+                    - sky_pojo：实体类模块，存放一些实体类，比如员工，分类，菜品，套餐，订单，地址...
+                    - sky_server：服务端模块，存放一些服务类，比如员工服务，分类服务，菜品服务，套餐服务，订单服务，地址服务...
+            2、使用Git进行项目代码的版本控制：
+                - 创建Git本地仓库：
+                    在IDEA中，右键点击项目
+                    选择 Git -> Add（或者使用快捷键 Ctrl + Alt + A）
+                    这会将项目文件添加到Git的暂存区
+                - 创建Git远程仓库
+                - 将本地文件推送到Git远程仓库
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.atguigu</groupId>
+    <artifactId>TakeOut</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>sky_common</module>
+        <module>sky_pojo</module>
+        <module>sky_server</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>
