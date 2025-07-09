@@ -36,6 +36,13 @@ TakeOut：
                     在IDEA中，右键点击项目
                     选择 Git -> Add（或者使用快捷键 Ctrl + Alt + A）
                     这会将项目文件添加到Git的暂存区
+
+                    在IDEA中，点击 VCS -> Commit（或者使用快捷键 Ctrl + K）
+                    在提交窗口中：
+                    选择要提交的文件
+                    填写提交信息（比如："Initial commit"）
+                    点击"Commit"按钮
+
                 - 创建Git远程仓库
                 - 将本地文件推送到Git远程仓库
  -->
