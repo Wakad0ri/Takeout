@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Entity  ：实体类，通常和数据库中的表对应
-    DTO     ：数据传输对象，通常用于程序中各层之间传递数据
+    DTO     ：区别于Entity，作为数据传输对象，通常用于程序中各层之间传递数据，就是给前端表现的数据（通常是Entity在前端需要展示的属性信息）
     VO      ：视图对象，为前端展示数据提供的对象
     pojo    ：普通的Java对象，只有属性和对应的get和set
 -->
@@ -23,4 +23,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
+            <version>${knife4j}</version>
+        </dependency>
+    </dependencies>
 </project>

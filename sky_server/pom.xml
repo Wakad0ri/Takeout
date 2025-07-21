@@ -11,6 +11,129 @@
     resources：
         - mapper 文件夹： mapper 文件夹下的所有文件
         - application.yml ... ： 配置文件
+
+    设计步骤：需求分析和设计 -> 代码开发 -> 功能测试 -> 代码完善
+
+    专题一：员工管理-新增员工
+         一、需求分析和设计：
+            1. 要求：有账号，员工姓名，手机号，性别，身份证号
+                    其中账号必须是唯一的；手机号和身份证分别为合法的11，18位号码；密码默认是123456
+            2. 接口设计：
+                - 基本信息：
+                    Path：/admin/employee  |  Method：POST
+                - 请求参数：
+                    Headers：Content-Type：application/json（必须）
+                - Body（给前端表现的属性封装成一个类）：见 DTO/EmployeeDTO.java
+                - 返回结果：
+                    必须：code（Integer 1为成功，0为失败）
+                    非必须：message（String），data（Object）
+            3. 数据库设计：见 employee表
+        二、代码开发：
+            根据前端需要设计DTO/EmployeeDTO.java类
+            根据数据库表结构，创建实体类 Employee（见 Entity/Employee.java）
+            在 Controller -> Service -> ServiceImpl -> Mapper -> Mapper.xml 添加 save 方法
+            其中ServiceImpl有一个 对象属性拷贝固定API：BeanUtils.copyProperties(source, target)，然后给Employee设置EmployeeDTO没有的属性
+
+        三、功能测试：
+            - 通过接口文档测试：
+                但是在点测试的时候会显示401，是因为我们的interceptor/JwtTokenAdminInterceptor.java拦截了
+                此时就需要先调用一次“员工登录”，在响应内容里边获取一个token，然后把token放
+                文档管理 -> 全局参数设置 -> 添加参数 -> 参数名必须为token(yml中配置) -> 参数值 即可
+            - 通过前后端联调测试：
+                http://localhost:8888/login#/employee/add
+                Tip：账号要为小写or数字组合且不重复，手机号一定要为1(3|4|5|6|7|8)开头
+
+        四、完善代码：
+            - 录入的用户名已存在，抛出异常后没有处理
+                在 handler/GlobalExceptionHandler.java 中重写exceptionHandler
+                参数：SQLIntegrityConstraintViolationException ex
+                先log一下，然后
+                if (message.contains("Duplicate entry")) {
+                    String[] split = message.split(" ");
+                    String username = split[2];
+                    String msg = "用户名【" + username + "】已存在";
+                    return Result.error(msg);
+                } else {
+                    return Result.error(MessageConstant.UNKNOWN_ERROR);
+                }
+
+            - 新增员工时，创建人id和修改人id设置为固定值，需要通过哪种方式动态获取当前登录的员工id？
+                答：在员工登录成功后会生成一个JWT令牌，里面有员工id，所以可以通过JWT令牌获取当前登录的员工id
+                在 interceptor/JwtTokenAdminInterceptor.java 中校验 JWT 的时候会获取当前登录的员工id
+
+                Tip：ThreadLocal 并不是一个 Thread，而是Thread的局部变量。
+                     其是为每个线程提供单独一份存储空间，具有线程隔离的效果，只有在线程内才能获取到对应的值，线程外则无法访问
+                     常用方法： void set(T value) || T get() || void remove()
+                     分别是设置(当前线程锁对应的线程局部变量)值、获取值、删除值
+
+                 若在JwtTokenAdminInterceptor.java, Controller & ServiceImpl.java 中都加上sout显示线程id，则线程id一致
+                 若再发送一次请求，则id会改变但三者id依然一致，所以这三者是一个线程局部变量
+                 所以就可以在JwtTokenAdminInterceptor.java 中获取当前登录的员工id，设置成ThreadLocal值，然后在ServiceImpl中获取
+                 （设置语句：BaseContext.setCurrentId(id);    获取值：BaseContext.getCurrentId();）
+                 详情见sky_common\..\context\BaseContext.java
+
+
+    专题二：员工管理-分类管理
+        一、需求分析和设计
+            1. 要求：
+                - 根据页码展示员工数据
+                - 每页展示 10 条员工数据
+                - 分页查询时可以根据需要，输入员工姓名进行查询
+            2. 接口设计：
+                - 基本信息：
+                    Path：/admin/employee/page  |  Method：GET
+                - 请求参数：
+                    name：员工信息 |  page：页码  |  pageSize：每页数据条数
+                - 返回数据：
+                    code, message, data(包含total, records(包含id, username, ...))
+        二、代码开发：
+            1. 设计DTO和实体类：sky_pojo/../DTO/EmployeePageQueryDTO.java，DTO是前端展示的东西
+                为了后端开发，我们给所有的分页查询，统一封装成 sky_common/../result/PageResult.java 对象
+                返回给前端/后端的数据应该为：Result<PageResult>
+            2. 之后同上设计
+                Tip：com.github.pagehelper.Page利用分页插件，实现分页查询，会自动添加limit的SQL语句
+                PageHelper.startPage(employeePageQueryDTO.getPage(), employeePageQueryDTO.getPageSize());
+                Page<Employee> page = employeeMapper.pageQuery(employeePageQueryDTO);
+                long total = page.getTotal();
+                List<Employee> list = page.getResult();
+                然后封装成PageResult对象：PageResult(total, list);
+
+        三、功能测试：
+            - 接口文档：http://localhost:8080/doc.html#/
+            - 前后端联调：http://localhost:8888/login#/employee
+
+        四、代码完善
+            - 日期格式
+                在测试的时候会发现，日期会变成 2025,7,19,21,42,6（接口文档） ， 202571921426（前后端联调）的格式
+                所以需要对
+                    · 方式一：属性进行@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")注解，只针对单个注解
+                    · 方式二：全局统一日期格式，在WebMvcConfiguration.java 中添加 SpringMVC 的 消息转换器
+                            统一对日期进行格式化处理
+                @Override
+                protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+                    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+                    converter.setObjectMapper(new JacksonObjectMapper());
+                    converters.add(converter);
+                }
+
+        专题三：启动禁用员工账号
+            一、需求分析和设计
+                1. 业务规则：
+                    - 可以对状态 “启用” 的员工账号进行 “禁用” 操作
+                    - 可以对状态 “禁用” 的员工账号进行 “启用” 操作
+                    - 状态为 “禁用” 的员工账号不能登录系统
+                2. 接口设计：
+                    - 基本信息：
+                        Path：/admin/employee/status/{status}  |  Method：POST
+                    - 请求参数：Headers-同专题一  |  路径参数-status  |  Query-id
+                    - 返回数据：
+                        code, message, data
+
+
+
+        功能四：编辑员工
+
+        功能五：导入分类模块功能代码
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -30,4 +153,78 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.atguigu</groupId>
+            <artifactId>sky_common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.atguigu</groupId>
+            <artifactId>sky_pojo</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- 最新版本的knife4j，支持Spring Boot 3.x -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+            <version>4.3.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

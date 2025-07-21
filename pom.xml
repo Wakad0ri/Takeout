@@ -35,35 +35,73 @@ TakeOut：
                 - 创建Git本地仓库：
                     在菜单找到VCS，点击创建Git仓库
                     选择项目目录
+                    之后点击commit（提交）即可
 
                 - 创建Git远程仓库
-                    在Github上创建一个空的仓库，点击New repository，勾选with a README文件
-                    然后Create repository
+                    在Gitee里创建一个仓库，并复制URL
 
                 - 将本地文件推送到Git远程仓库
-                    首先，在IDEA中关联远程仓库：
-                    点击菜单 VCS -> Git -> Remotes...
-                    在弹出的窗口中点击"+"号
-                    在"Name"中输入origin（这是远程仓库的默认名称）
-                    在"URL"中粘贴您GitHub仓库的URL（类似 https://github.com/你的用户名/TakeOut.git）
-                    点击"OK"保存
-                    推送代码到远程仓库：
-                    点击菜单 VCS -> Git -> Push（或使用快捷键 Ctrl + Shift + K）
-                    在弹出的Push Commits窗口中：
-                    确认推送的分支（通常是master或main）
-                    点击"Push"按钮
-                    如果这是第一次推送，IDEA会弹出GitHub登录窗口：
-                    选择"Log In via GitHub..."
-                    在弹出的浏览器窗口中登录您的GitHub账号
-                    授权IDEA访问您的GitHub账号
-                    等待推送完成
-                    IDEA底部会显示推送进度
-                    完成后会显示"Push successful"
+                    在Idea中点击push，内部仓库：
+                    Wakadori    Li20050915_
+
+        三、后端数据库搭建
+            通过的数据库建表语句创建数据库表结构
+            employee 员工表  |  category 分类表  |  dish 菜品表  |  dish_flavor 菜品口味表  |  setmeal 套餐表  |  setmeal_dish 套餐菜品关系表
+            user     用户表  |  address  地址表  |  order 订单表 |  order_detail 订单明细表 | shopping_cart 购物车表
+
+        四、前后端联调：
+            后端的初始工程中已经实现了登录功能，直接进行前后端联调测试即可
+            - Controller：
+                · 接受并封装数据   · 调用service方法查询数据库  · 封装结果并相应
+            - Service：
+                · 调用mapper查询数据库  · 密码比对            · 返回结果
+            - Mapper：
+                · 封装SQL语句
+            Tip：管理端发出的请求统一使用/admin  |  用户端发出的请求统一使用/user
+
+        五、密码加密：
+            使用：MD5加密方式对明文密码进行加密
+            步骤：
+                - 修改数据库中的明文密码，改为MD5加密后的密文
+                    select * from takeout.employee;
+                - 修改Java代码，前端提交的密码进行MD5加密后，再和数据库中密码比对
+                    在EmployeeServiceImpl类中，修改login方法
+                    password = DigestUtils.md5DigestAsHex(password.getBytes());
+
+        六、接口设计和接口导入
+            1. 前后端分离开发流程：
+                定制接口 -> 前端开发/后端开发 -> 联调 -> 提测
+            2. 操作步骤：
+                将课程资料中提供的项目接口导入YApi
+                创建好：苍穹外卖-管理端接口 和 苍穹外卖-用户端接口
+                点击管理\用户端接口，数据管理->数据导入（选择Json）->导入（资料里）
+                之后就可以根据接口来编写后端代码了
+            3. Swagger
+                是一种高效的测试接口管理工具（ApiFox也自带）
+                导入依赖：knife4j-spring-boot-starter
+                在配置类中添加Swagger配置：
+                配置Swagger：
+                TODO：   @Bean
+                        public OpenAPI openAPI() {
+                            return new OpenAPI().info(new Info().title("苍穹外卖项目接口文档")
+                            .version("2.0").description("苍穹外卖项目接口文档"));}
+                实现：http://localhost:8080/doc.html#/home
+            4. Swagger3的相关注解：
+                @Tag    ：   用在类上，例如Controller，表示对类的说明   （原@Api,tags->name）
+                @Schema ：   用在类 / 属性上，例如Entity、DTO、VO，表示对类的说明，以及对属性的说明  （原@ApiModel 和 @ApiModelProperty）
+                @Operation  ：   用在方法上，例如Controller的方法，表示对方法的说明  （原@ApiOperation,value->summary）
+                为pojo所有类都加上@Schema注解
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.2</version>
+    </parent>
 
     <groupId>com.atguigu</groupId>
     <artifactId>TakeOut</artifactId>
@@ -79,6 +117,142 @@ TakeOut：
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mybatis.spring>3.0.3</mybatis.spring>
+        <lombok>1.18.30</lombok>
+        <fastjson2>2.0.47</fastjson2>
+        <commons.lang3>3.14.0</commons.lang3>
+        <druid>1.2.21</druid>
+        <pagehelper>1.4.7</pagehelper>
+        <aliyun.sdk.oss>3.17.4</aliyun.sdk.oss>
+        <knife4j>4.3.0</knife4j>
+        <aspectj>1.9.21</aspectj>
+        <jjwt-api>0.12.5</jjwt-api>
+        <jaxb-api>4.0.1</jaxb-api>
+        <poi>5.2.5</poi>
+        <wechatpay>0.4.8</wechatpay>
     </properties>
 
+    <!-- 配置阿里云Maven镜像 -->
+    <repositories>
+        <repository>
+            <id>aliyun</id>
+            <name>aliyun</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis.spring}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${druid}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${pagehelper}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>${fastjson2}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang3}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>${aliyun.sdk.oss}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
+            <version>${knife4j}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt-api}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt-api}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt-api}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jaxb-api}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi}</version>
+        </dependency>
+
+        <!--  微信支付  -->
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-apache-httpclient</artifactId>
+            <version>${wechatpay}</version>
+        </dependency>
+
+        <!-- knife4j的依赖 -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
+            <version>4.3.0</version>
+        </dependency>
+    </dependencies>
 </project>
