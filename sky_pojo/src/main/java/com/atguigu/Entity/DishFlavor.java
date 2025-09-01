@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 菜品口味信息实体类
@@ -50,24 +49,4 @@ public class DishFlavor implements Serializable {
     // 前端可根据这些选项值展示具体的口味选择
     @Schema(description = "口味选项值")
     private String value;
-
-    // 创建时间
-    // 系统自动生成，记录口味选项创建的时间点
-    @Schema(description = "创建时间")
-    private LocalDateTime createTime;
-
-    // 更新时间
-    // 系统自动维护，记录最后一次更新的时间点
-    @Schema(description = "更新时间")
-    private LocalDateTime updateTime;
-
-    // 创建人ID
-    // 记录创建该口味选项的用户ID，用于追踪操作人
-    @Schema(description = "创建人ID")
-    private Long createUser;
-
-    // 修改人ID
-    // 记录最后一次修改该口味选项的用户ID，用于追踪操作人
-    @Schema(description = "修改人ID")
-    private Long updateUser;
 }

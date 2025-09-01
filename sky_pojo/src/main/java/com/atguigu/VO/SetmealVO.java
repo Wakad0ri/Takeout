@@ -89,5 +89,6 @@ public class SetmealVO implements Serializable {
     // 存储该套餐包含的所有菜品信息
     // 默认初始化为空列表，避免NPE
     @Schema(description = "套餐菜品关系列表")
+    @Builder.Default
     private List<SetmealDish> setmealDishes = new ArrayList<>();
 }

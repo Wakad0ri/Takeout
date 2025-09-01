@@ -3,6 +3,11 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.atguigu.mapper.EmployeeMapper">
 
+    <insert id="insert">
+            insert into employee (username, name, password, phone, sex, id_number, status, create_time, update_time, create_user, update_user)
+            values (#{username}, #{name}, #{password}, #{phone}, #{sex}, #{idNumber}, #{status}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
+    </insert>
+
     <select id="pageQuery" resultType="com.atguigu.Entity.Employee">
         select * from employee
         <where>
@@ -13,18 +18,26 @@
         order by create_time desc
     </select>
 
-    <update id="update" parameterType="com.atguigu.Entity.Employee">
+    <update id="updateStatus">
+        update employee
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateUser != null">update_user = #{updateUser}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateInfo">
         update employee
         <set>
             <if test="username != null">username = #{username},</if>
             <if test="name != null">name = #{name},</if>
-            <if test="password != null">password = #{password},</if>
             <if test="phone != null">phone = #{phone},</if>
             <if test="sex != null">sex = #{sex},</if>
             <if test="idNumber != null">id_number = #{idNumber},</if>
-            <if test="status != null">status = #{status},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
-            <if test="updateUser != null">update_user = #{updateUser},</if>
+            <if test="updateUser != null">update_user = #{updateUser}</if>
         </set>
         where id = #{id}
     </update>

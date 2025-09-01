@@ -45,6 +45,7 @@ buildNumber.properties
 .settings/
 .classpath
 .project
+bin/
 
 # Mac
 .DS_Store

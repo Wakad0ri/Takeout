@@ -14,6 +14,7 @@ import com.atguigu.mapper.EmployeeMapper;
 import com.atguigu.service.EmployeeService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Tag(name = "员工管理-服务层")
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
@@ -32,7 +34,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 员工登录
-     * @param employeeLoginDTO
+     * @param employeeLoginDTO （
      * @return Employee
      */
     public Employee login(EmployeeLoginDTO employeeLoginDTO) {
@@ -67,10 +69,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 新增员工
-     * @param employeeDTO
+     * @param employeeDTO (json
      */
     @Override
-    public void save(EmployeeDTO employeeDTO) {
+    public void saveEmployee(EmployeeDTO employeeDTO) {
 
         Employee employee = new Employee();
         // 对象属性拷贝：
@@ -78,12 +80,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setStatus(StatusConstant.ENABLE);
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-
-        // 从当前线程中获取当前登录用户的ID
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+//        employee.setCreateTime(LocalDateTime.now());
+//        employee.setUpdateTime(LocalDateTime.now());
+//
+//        // 从当前线程中获取当前登录用户的ID
+//        employee.setCreateUser(BaseContext.getCurrentId());
+//        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
 
@@ -91,7 +93,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 分页查询
-     * @param employeePageQueryDTO
+     * @param employeePageQueryDTO （
      * @return PageResult
      */
     @Override
@@ -107,18 +109,49 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 启用禁用员工账号
-     * @param status
-     * @param id
+     * @param status （Integer）
+     * @param id （Long）
      */
     @Override
     public void startOrStop(Integer status, Long id) {
         Employee employee = Employee.builder()
                 .status(status)
                 .id(id)
-                .updateTime(LocalDateTime.now())
-                .updateUser(BaseContext.getCurrentId())
+//                .updateTime(LocalDateTime.now())
+//                .updateUser(BaseContext.getCurrentId())
                 .build();
-        employeeMapper.update(employee);
+        employeeMapper.updateStatus(employee);
+    }
+
+    /**
+     * 根据ID查询员工信息
+     * @param id （Long）
+     * @return Employee
+     */
+    @Override
+    public Employee getById(Long id) {
+        Employee employee = employeeMapper.getById(id);
+        employee.setPassword("****");
+        return employee;
+    }
+
+    /**
+     * 编辑员工信息
+     * @param employeeDTO （json
+     */
+    @Override
+    public void update(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+
+        // 对象属性拷贝
+        BeanUtils.copyProperties(employeeDTO, employee);
+        
+//        // 设置更新时间
+//        employee.setUpdateTime(LocalDateTime.now());
+//        // 设置更新人
+//        employee.setUpdateUser(BaseContext.getCurrentId());
+
+        employeeMapper.updateInfo(employee);
     }
 
 

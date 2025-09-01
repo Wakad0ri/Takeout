@@ -92,6 +92,213 @@ TakeOut：
                 @Operation  ：   用在方法上，例如Controller的方法，表示对方法的说明  （原@ApiOperation,value->summary）
                 为pojo所有类都加上@Schema注解
  -->
+
+<!--
+    专题四：Redis
+        一、简介：
+            基于内存的key-value结构数据库
+            · 基于内存存储，读写性能高
+            · 适合存储热点数据（热点商品，资讯，新闻）
+            · 企业应用广泛
+
+        二、Redis下载和安装
+            - redis.windows.conf 配置文件
+            - redis-cli.exe      Redis客户端
+            - redis-server.bat   Redis服务端
+            之后cmd后输入redis-server.exe redis.windows.conf
+            之后用客户端输入redis-cli.exe 就可以链接到上述客户端了
+
+        三、Redis 的 conf 修改
+            - 设置密码： 把 requirepass foobared 的 foobared 改为自己的密码
+                       之后就可以用 redis-cli.exe -h localhost -p 6379 -a 741963 来登录了
+        四、Another Redis Desktop Manager 安装
+            略
+
+        五、Redis 的数据结构
+            Redis存储的是key-value结构的数据，其中key是字符串类型，value有以下五种常用数据类型
+            - String（字符串）
+            - List（列表，类似于LinkedList）
+            - Set（集合，类似于HashSet）
+            - Hash（哈希，类似于HashMap）
+            - ZSet（有序集合，每一个元素都会关联一个分数进行升序排序，无重复元素，类似于TreeMap）
+
+        六、Redis常用命令
+            - 字符串操作命令
+                · SET key value ：   设置指定key的值
+                · GET(DEL) key ：   获取（删除）指定key的值
+                · SETEX key seconds value ：   设置指定key的值，并指定过期时间
+                · SETNX key value ：   设置指定key的值，如果key不存在则设置成功·
+            - H-哈希操作命令
+                · HSET key field value ：   将哈希表key中的字段field的值为value
+                · HGET(HDEL) key field ：   获取（删除）指定key的哈希表中指定字段的值
+                · HKEYS key ：   获取指定key的哈希表所有字段
+                · HVALS key ：   获取指定key的哈希表所有字段的值
+            - LR-列表操作命令（举例：队列-头部添加，尾部移除）
+                · LPUSH key value1 [value2] ：   将一个或多个值插入到列表头部
+                · LRANGE key start stop ：   获取列表指定范围内的元素（从0开始，若stop为-1，则返回所有元素）
+                · RPOP key ：   移除并获取列表最后一个元素
+                · LLEN key ：   获取列表长度
+            - S-集合操作命令
+                · SADD(SREM) key member1 [member2] ：   添加（移除）集合中的一个或多个元素
+                · SMEMBERS key ：   获取集合中的所有元素
+                · SCARD key ：      获取集合的元素个数
+                · SINTER key key2 [key3] ：   获取多个集合的交集
+                · SUNION key key2 [key3] ：   获取多个集合的并集
+            - Z-有序集合操作命令
+                · ZADD key score1 member1 [score2 member2] ：   添加一个或多个有序集合的成员，并指定成员的分数
+                · ZRANGE key start stop [WITHSCORES] ：   获取指定范围的元素（从0开始，若stop为-1，则返回所有元素）
+                · ZREM key member1 [member2] ：   移除一个或多个元素
+                · ZINCRBY key increment member ：   为有序集合的成员增加分数
+            - 通用命令：
+                · KEYS */patten ：   查看所有(符合条件的)key
+                · EXISTS key seconds ：   查看key是否存在
+                · TYPE key ：   查看key的类型
+                · DEL key ：   若key存在则删除key
+
+        七、在Java中使用Redis
+            1. Redis的Java客户端：Jedis（主要）, Lettuce, Spring Data Redis
+               Tip：Spring Data Redis 是 Spring 的一部分，对Redis进行了封装
+            2. Spring Data Redis 的使用方式
+                · 导入依赖：spring-boot-starter-data-redis
+                · 配置Redis：在application.yml中配置Redis的连接信息
+                  - spring:
+                      - data:
+                        - redis:
+                          - host: localhost
+                          - port: 6379
+                          - password: 741963
+                          - database: （选中使用的数据库）
+                · 使用Redis：注入RedisTemplate<String, Object> redisTemplate：（见RedisConfiguration.java）
+                · RedisTemplate的使用：（见SpringDataRedisTest.java）
+                    ValueOperations, ListOperations, SetOperations, ZSetOperations, HashOperations
+                    对象名 = redisTemplate.opsForValue/List/...();
+                · 通过RedisTemplate操作Redis
+-->
+
+<!--
+    专题五：HttpClient 5.x
+        一、介绍：
+            HttpClient是Apache HttpComponents项目下的子项目，可以用来提供高效的，最新的、功能丰富的支持HTTP协议的客户端编程工具包
+            并且它支持HTTP协议最新的版本和建议，包括HTTP/1.1、HTTP/2等
+
+        二、核心API
+            - 依赖：httpclient5 5.4.4
+            - 核心类
+                · HttpClient：客户端接口，用于发送HTTP请求
+                · HttpClients：HttpClient的工厂类，用于创建HttpClient对象
+                · CloseableHttpClient：可关闭的HTTP客户端实现，用于发送HTTP请求并获得响应结果
+                · HttpGet：GET请求对象
+                · HttpPost：POST请求对象
+
+        四、发送请求步骤
+            - 创建CloseableHttpClient对象（使用HttpClients.createDefault()）
+            - 创建HttpGet/HttpPost请求对象
+            - 调用HttpClient的execute方法发送请求（并用CloseableHttpResponse接收）
+            - 获取服务器返回的状态码（结果.getCode()）
+            - 获取服务器返回的数据（用HttpEntity接收 结果.getEntity()）
+            - 关闭资源
+
+        五、使用案例
+            1. 关于阿里云OSSjar包
+                其实阿里云OSS的jar包是包括了httpclient架包的(httpclient:4.5.13)
+                见test/java/../HttpClientTest.java
+            2. 如果是Post请求，需要设置请求体
+                2-1. 因为是Json，所以需要导入Gson依赖并创建JsonObject对象
+                2-2. 为JsonObject对象添加参数
+                    对象.addProperty(xx, xx);
+                2-3. 创建StringEntity对象，并设置请求体
+                    StringEntity requestEntity = new StringEntity(json.toString(), ContentType.APPLICATION_JSON);
+                2-4. 设置请求体
+                    httpPost.setEntity(requestEntity);
+
+        六、使用方面
+            为了方便使用，我们在common/../util/HttpClient5Util.java中封装了HttpClient5Util类，可以直接使用
+-->
+
+<!--
+    专题六：微信小程序开发
+        一、前置工作
+            - 微信小程序网址：https://mp.weixin.qq.com/wxamp/devprofile/get_profile?token=804997831&lang=zh_CN
+              注册并获取开发者ID
+            - 微信开发者工具：新建，添加项目（不使用云服务，模板），左上角详情-本地设置-不启用...校验
+        二、微信小程序开发
+            1. 了解微信小程序的目录结构：
+            小程序包含一个描述整体程序的app和多个描述各自页面的page。
+                - 一个小程序主体部分由三个文件组成：
+                    · app.js ：   项目的入口文件，小程序逻辑
+                    · app.json ：   项目的公共配置文件
+                    · app.wxss ：   项目的公共样式表（非必须）
+                - 一个小程序页面由四个文件组成
+                    · xxx.js    （页面逻辑）      · xxx.json（页面配置）
+                    · xxx.wxml  （页面结构，非必须）· xxx.wxss（页面样式，非必须）
+
+        三、微信登录：
+            见serve开发
+-->
+
+<!--
+    专题七：缓存菜品
+        一、问题说明：
+            用户端小程序展示的菜品数据都是通过查询数据库获得，若用户端访问量比较大啧数据库访问压力大 -> 系统响应慢，用户体验差
+        二、解决方案：
+            通过Redis来缓存菜品数据，减少数据库查询操作
+            1. 流程: 开始 -查询菜品-> 后端服务 -> 缓存是否存在 |-NO-> 查询数据库 -> 载入缓存
+                                                     |-YES-> 从缓存中获取数据
+            2. 实现思路
+                - 缓存逻辑分析：
+                    · 每个分类下的菜品保存一份缓存数据（用 分类id 作为key，菜品数据作为value ）
+                    · 把Java中的菜品集合序列化，最终把它转成redis的一个字符串 作为value
+                    · 数据库中菜品数据有变更时，清理缓存数据
+            3. 代码实现
+                见 user/DishController.java
+
+            4. 代码改进：
+                修改管理端接口 DishController 的相关方法，加入清理缓存的逻辑
+                在admin/DishController.java中需要改进的方法：
+                    · 新增菜品              · 修改菜品
+                    · 启用禁用菜品           · 删除菜品
+-->
+
+<!--
+    专题八：Spring Cache
+        一、简介：
+            Spring Cache 是一个框架，实现了基于 注解 的缓存功能，只需要简单 的加一个注解，就能实现缓存功能
+            Spring Cache提供了一层抽象，底层可以切换不同的缓存实现，例如：
+                - EhCache       - Caffeine      - Redis
+            导入依赖：spring-boot-starter-cache
+
+        二、常用注解：
+            - @EnableCaching ：   在启动类上加，开启缓存注解功能
+            - @Cacheable     ：   在方法上加，若有缓存则直接返回，若没有则执行方法并缓存返回值
+            - @CachePut      ：   在方法上加，表示将方法返回值放到缓存中
+            - @CacheEvict    ：   在方法上加，将一条或多条缓存数据清除
+            核心原则：任何数据变更操作都应该处理相关缓存
+        三、缓存注解使用
+            1. CacheConfiguration.java 的作用
+                - 配置 Redis 作为 Spring Cache 的底层实现
+                - 设置缓存的序列化方式
+                - 设置缓存的过期时间
+                - 支持多种缓存配置
+                - 之后就可以在方法上使用 @Cacheable @CachePut @CacheEvict 注解了
+            2. @Cacheable
+                通常在 查询 方法中使用
+                - cacheNames：缓存名称
+                - key：缓存key, 同上
+            3. @CachePut
+                通常在 需要立即更新 缓存的方法中使用（如单个实体的修改、新增）
+                key的生成：cacheNames + "::" + key
+                - cacheNames：缓存名称
+                - key：缓存key, 支持SpEL表达式
+                （必须以#开头，以方法的形参为准，比如方法参数为User user，则key值为#user.id表示user的id属性，
+                  或者 #result.id 表示返回值的id属性）
+            4. @CacheEvict
+                通常在 删除、修改、新增、状态变更 方法中使用
+                - cacheNames：缓存名称
+                - allEntries：表示全部批量处理，默认为false（通常在删除操作或影响多个缓存项的操作时使用）
+                - key：和allEntries不同！！！表示精确处理
+
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -121,6 +328,7 @@ TakeOut：
         <lombok>1.18.30</lombok>
         <fastjson2>2.0.47</fastjson2>
         <commons.lang3>3.14.0</commons.lang3>
+        <gson>2.10.1</gson>
         <druid>1.2.21</druid>
         <pagehelper>1.4.7</pagehelper>
         <aliyun.sdk.oss>3.17.4</aliyun.sdk.oss>
@@ -166,6 +374,19 @@ TakeOut：
                 <artifactId>pagehelper-spring-boot-starter</artifactId>
                 <version>${pagehelper}</version>
             </dependency>
+
+            <!-- HttpClient 5.x 版本管理 -->
+            <dependency>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>5.4.4</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents.core5</groupId>
+                <artifactId>httpcore5</artifactId>
+                <version>5.3.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -192,12 +413,6 @@ TakeOut：
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
             <version>${aliyun.sdk.oss}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
-            <version>${knife4j}</version>
         </dependency>
 
         <dependency>
@@ -254,5 +469,31 @@ TakeOut：
             <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
             <version>4.3.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+
+        <!-- redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson}</version>
+        </dependency>
+
+        <!--   Spring Cache    -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+
     </dependencies>
 </project>

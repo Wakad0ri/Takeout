@@ -114,11 +114,6 @@ public class Orders implements Serializable {
     @Schema(description = "订单备注")
     private String remark;
 
-    // 用户名称
-    // 冗余存储，便于订单展示
-    @Schema(description = "用户名称")
-    private String userName;
-
     // 手机号码
     // 用于配送联系
     @Schema(description = "手机号码")

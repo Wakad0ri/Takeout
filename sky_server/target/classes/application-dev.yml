@@ -4,6 +4,12 @@ spring:
     url: jdbc:mysql://localhost:3306/takeout
     username: root
     password: 741963
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 741963
+      database : 2
 
 sky:
   datasource:
@@ -13,6 +19,11 @@ sky:
     database: takeout
     username: root
     password: 741963
+  redis:
+    host: localhost
+    port: 6379
+    password: 741963
+    database: 2
   jwt:
     # 设置jwt签名加密时使用的秘钥
     admin-secret-key: itcast@admin&123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -20,3 +31,30 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+
+    # 设置jwt签名加密时使用的秘钥
+    user-secret-key: itcast@user&123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+    # 设置jwt过期时间
+    user-ttl: 7200000
+    # 设置前端传递过来的令牌名称
+    user-token-name: authentication
+
+  # 微信支付相关配置
+  wechat:
+    appid: wxe6d729502a0a743b
+    secret: b7acb15b72ba38d6a2c588c915c5b595
+    mchid: 你的商户号
+    mchSerialNo: 你的商户证书序列号
+    privateKeyFilePath: classpath:cert/apiclient_key.pem
+    apiV3Key: 你的APIv3密钥
+    weChatPayCertFilePath: classpath:cert/wechatpay_cert.pem
+    notifyUrl: http://4e98fcec.r11.vip.cpolar.cn/notify/paySuccess
+    refundNotifyUrl: http://4e98fcec.r11.vip.cpolar.cn/notify/refundSuccess
+
+# 阿里云OSS配置 - 开发环境
+aliyun:
+  oss:
+    endpoint: https://oss-cn-beijing.aliyuncs.com
+    access-key-id: LTAI5t5n9iYN1FT85PBbp6jU
+    access-key-secret: kaV8c679Zvp407jhPjuowiZK81m4HU
+    bucket-name: wakadori

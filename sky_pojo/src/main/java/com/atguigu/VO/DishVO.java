@@ -88,5 +88,6 @@ public class DishVO implements Serializable {
     // 存储该菜品支持的所有口味选项
     // 默认初始化为空列表，避免NPE
     @Schema(description = "口味列表")
+    @Builder.Default
     private List<DishFlavor> flavors = new ArrayList<>();
 }

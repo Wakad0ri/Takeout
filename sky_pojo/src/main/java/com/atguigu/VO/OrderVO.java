@@ -5,6 +5,7 @@ import com.atguigu.Entity.Orders;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -30,6 +31,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "订单视图对象")
+@EqualsAndHashCode(callSuper = true)
 public class OrderVO extends Orders implements Serializable {
 
     private static final long serialVersionUID = 1L;

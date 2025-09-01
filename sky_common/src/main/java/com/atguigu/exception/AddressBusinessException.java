@@ -6,7 +6,7 @@ package com.atguigu.exception;
  */
 public class AddressBusinessException extends BaseException{
 
-    public AddressBusinessException() {
-        super();
+    public AddressBusinessException(String msg) {
+        super(msg);
     }
 }
