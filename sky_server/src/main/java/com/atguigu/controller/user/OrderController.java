@@ -3,8 +3,10 @@ package com.atguigu.controller.user;
 import com.atguigu.DTO.OrderType.OrderHistoryQueryDTO;
 import com.atguigu.DTO.OrderType.OrdersPaymentDTO;
 import com.atguigu.DTO.OrderType.OrdersSubmitDTO;
+import com.atguigu.VO.OrderDetailsVO;
 import com.atguigu.VO.OrderPaymentVO;
 import com.atguigu.VO.OrderSubmitVO;
+import com.atguigu.VO.OrderVO;
 import com.atguigu.result.PageResult;
 import com.atguigu.result.Result;
 import com.atguigu.service.OrderService;
@@ -45,9 +47,12 @@ public class OrderController {
     @Operation(summary = "订单支付")
     public Result<OrderPaymentVO> payment(@RequestBody OrdersPaymentDTO ordersPaymentDTO) throws Exception {
         log.info("订单支付：{}", ordersPaymentDTO);
-        OrderPaymentVO orderPaymentVO = orderService.payment(ordersPaymentDTO);
-        log.info("生成预支付交易单：{}", orderPaymentVO);
-        return Result.success(orderPaymentVO);
+//      这个地方因为要支付必须要进行校验，所以直接调用paySuccess方法进而跳转成功页面
+//        OrderPaymentVO orderPaymentVO = orderService.payment(ordersPaymentDTO);
+//        log.info("生成预支付交易单：{}", orderPaymentVO);
+//        return Result.success(orderPaymentVO);
+        orderService.paySuccess(ordersPaymentDTO.getOrderNumber());
+        return Result.success(new OrderPaymentVO());
     }
 
     /**
@@ -64,6 +69,19 @@ public class OrderController {
     }
 
     /**
+     * 订单详情：GET
+     * @param id （订单id）
+     * @return Result<OrderVO>
+     */
+    @GetMapping("/orderDetail/{id}")
+    @Operation(summary = "订单详情")
+    public Result<OrderVO> details(@PathVariable Long id){
+        log.info("查询订单详情，订单ID：{}", id);
+        OrderVO orderDetailsVO = orderService.details(id);
+        return Result.success(orderDetailsVO);
+    }
+
+    /**
      * 取消订单：PUT
      * @param id （
      * @return Result<String>
@@ -72,7 +90,7 @@ public class OrderController {
     @Operation(summary = "取消订单")
     public Result<String> cancel(@PathVariable Long id){
         log.info("取消订单：{}", id);
-        orderService.cancel(id);
+        orderService.cancelByUser(id);
         return Result.success();
     }
 
@@ -87,4 +105,19 @@ public class OrderController {
         orderService.again(id);
         return Result.success();
     }
+
+    /**
+     * 用户催单：GET
+     * @param id （订单id）
+     */
+    @GetMapping("/reminder/{id}")
+    @Operation(summary = "=用户催单")
+    public Result<String> reminder(@PathVariable Long id){
+        log.info("用户催单：{}", id);
+        orderService.reminder(id);
+        return Result.success();
+    }
+
+
+
 }

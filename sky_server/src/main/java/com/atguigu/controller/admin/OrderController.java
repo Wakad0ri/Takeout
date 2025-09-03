@@ -4,6 +4,7 @@ import com.atguigu.DTO.OrderType.OrdersCancelDTO;
 import com.atguigu.DTO.OrderType.OrdersConfirmDTO;
 import com.atguigu.DTO.OrderType.OrdersPageQueryDTO;
 import com.atguigu.DTO.OrderType.OrdersRejectionDTO;
+import com.atguigu.VO.OrderDetailsVO;
 import com.atguigu.VO.OrderStatisticsVO;
 import com.atguigu.VO.OrderVO;
 import com.atguigu.result.PageResult;
@@ -25,15 +26,15 @@ public class OrderController {
     private OrderService orderService;
 
     /**
-     * 订单分页查询：POST
-     * @param ordersPageQueryDTO （json
+     * 订单分页查询：GET
+     * @param ordersPageQueryDTO 查询参数
      * @return Result<PageResult>
      */
-    @PostMapping("/page")
+    @GetMapping("/conditionSearch")
     @Operation(summary = "订单分页查询")
-    public Result<PageResult> page(OrdersPageQueryDTO ordersPageQueryDTO){
+    public Result<PageResult> conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO){
         log.info("订单分页查询：{}", ordersPageQueryDTO);
-        PageResult pageResult = orderService.page(ordersPageQueryDTO);
+        PageResult pageResult = orderService.conditionSearch(ordersPageQueryDTO);
         return Result.success(pageResult);
     }
 
@@ -41,7 +42,7 @@ public class OrderController {
      * 各个状态的订单数量统计：GET
      * @return Result<OrderStatisticsVO>
      */
-    @PostMapping("/statistics")
+    @GetMapping("/statistics")
     @Operation(summary = "各个状态的订单数量统计")
     public Result<OrderStatisticsVO> statistics(){
         log.info("各个状态的订单数量统计");
@@ -51,12 +52,13 @@ public class OrderController {
 
     /**
      * 订单详情展示： GET
+     *
      * @param id （Long）
      * @return Result<OrderVO>
      */
     @GetMapping("/details/{id}")
     @Operation(summary = "订单详情展示")
-    public Result<OrderVO> details(@PathVariable("id") Long id){
+    public Result<OrderVO> details(@PathVariable Long id){
         log.info("订单详情展示：{}", id);
         OrderVO orderVO = orderService.details(id);
         return Result.success(orderVO);
@@ -97,7 +99,7 @@ public class OrderController {
     @Operation(summary = "取消订单")
     public Result<String> cancel(@RequestBody OrdersCancelDTO ordersCancelDTO) throws Exception {
         log.info("取消订单：{}", ordersCancelDTO);
-        orderService.cancel(ordersCancelDTO);
+        orderService.cancelByAdmin(ordersCancelDTO);
         return Result.success();
     }
 
@@ -126,6 +128,5 @@ public class OrderController {
         orderService.complete(id);
         return Result.success();
     }
-
 
 }

@@ -13,11 +13,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.data.redis.core.RedisTemplate; // 不再需要直接使用 RedisTemplate
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController("adminDishController")
 @RequestMapping("/admin/dish")

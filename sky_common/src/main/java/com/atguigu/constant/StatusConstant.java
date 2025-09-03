@@ -22,5 +22,9 @@ public class StatusConstant {
 
     //是否非默认
     public static final Integer NOT_DEFAULT = 0;
+
+    // WebSocket通知状态：来单提醒 1，催单提醒 2
+    public static final Integer ORDER_REMINDER = 1;
+    public static final Integer REMIND_ORDER = 2;
 }
 

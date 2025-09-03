@@ -20,15 +20,15 @@ import java.util.List;
  * 购物车减少数量功能测试
  * 测试购物车sub方法的各种场景
  */
-@SpringBootTest
+//@SpringBootTest
 @ActiveProfiles("test") // 使用测试配置
 @Transactional // 测试后回滚数据
 public class ShoppingCartSubTest {
 
-    @Autowired
+//    @Autowired
     private ShoppingCartService shoppingCartService;
 
-    @Autowired
+//    @Autowired
     private ShoppingCartMapper shoppingCartMapper;
 
     private static final Long TEST_USER_ID = 1L;
@@ -58,16 +58,16 @@ public class ShoppingCartSubTest {
 
         // 验证结果
         assert result != null : "返回结果不应为null";
-        
+
         // 查询数据库验证数量是否正确减少
         ShoppingCart queryCart = new ShoppingCart();
         queryCart.setUserId(TEST_USER_ID);
         queryCart.setDishId(TEST_DISH_ID);
         List<ShoppingCart> cartList = shoppingCartMapper.getListByUserId_DishId_SetmealId_DishFlavor(queryCart);
-        
+
         assert !cartList.isEmpty() : "购物车项应该仍然存在";
         assert cartList.get(0).getNumber() == 2 : "数量应该从3减少到2";
-        
+
         System.out.println("测试通过：购物车数量从3减少到2");
     }
 
@@ -89,15 +89,15 @@ public class ShoppingCartSubTest {
 
         // 验证结果
         assert result != null : "返回结果不应为null";
-        
+
         // 查询数据库验证项目是否被删除
         ShoppingCart queryCart = new ShoppingCart();
         queryCart.setUserId(TEST_USER_ID);
         queryCart.setDishId(TEST_DISH_ID);
         List<ShoppingCart> cartList = shoppingCartMapper.getListByUserId_DishId_SetmealId_DishFlavor(queryCart);
-        
+
         assert cartList.isEmpty() : "购物车项应该被删除";
-        
+
         System.out.println("测试通过：数量为1的购物车项被正确删除");
     }
 
@@ -115,7 +115,7 @@ public class ShoppingCartSubTest {
 
         // 验证结果：应该正常返回，不会出错
         assert result != null : "返回结果不应为null";
-        
+
         System.out.println("测试通过：减少不存在的购物车项不会出错");
     }
 
@@ -139,17 +139,17 @@ public class ShoppingCartSubTest {
 
         // 验证结果
         assert result != null : "返回结果不应为null";
-        
+
         // 查询数据库验证数量是否正确减少
         ShoppingCart queryCart = new ShoppingCart();
         queryCart.setUserId(TEST_USER_ID);
         queryCart.setDishId(TEST_DISH_ID);
         queryCart.setDishFlavor("[{\"name\":\"辣度\",\"value\":\"微辣\"}]");
         List<ShoppingCart> cartList = shoppingCartMapper.getListByUserId_DishId_SetmealId_DishFlavor(queryCart);
-        
+
         assert !cartList.isEmpty() : "购物车项应该仍然存在";
         assert cartList.get(0).getNumber() == 1 : "数量应该从2减少到1";
-        
+
         System.out.println("测试通过：带口味的购物车项数量正确减少");
     }
 

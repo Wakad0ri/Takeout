@@ -1,15 +1,14 @@
 package com.atguigu.service.impl;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.atguigu.DTO.OrderType.*;
 import com.atguigu.Entity.*;
-import com.atguigu.VO.OrderPaymentVO;
-import com.atguigu.VO.OrderStatisticsVO;
-import com.atguigu.VO.OrderSubmitVO;
-import com.atguigu.VO.OrderVO;
+import com.atguigu.VO.*;
 import com.atguigu.constant.MessageConstant;
+import com.atguigu.constant.StatusConstant;
 import com.atguigu.context.BaseContext;
 import com.atguigu.exception.AddressBusinessException;
 import com.atguigu.exception.OrderBusinessException;
@@ -19,6 +18,7 @@ import com.atguigu.result.PageResult;
 import com.atguigu.service.OrderService;
 import com.atguigu.utils.HttpClientUtil;
 import com.atguigu.utils.WeChatPayUtil;
+import com.atguigu.websocket.WebSocketServer;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,6 +56,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户下单
@@ -71,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 检查配送范围
-        checkOutOfRange(address.getCityName() + address.getDistrictName() + address.getDetail());
+//        checkOutOfRange(address.getCityName() + address.getDistrictName() + address.getDetail());
 
         Long userId = BaseContext.getCurrentId();
         ShoppingCart shoppingCart = new ShoppingCart();
@@ -90,10 +92,10 @@ public class OrderServiceImpl implements OrderService {
                 .number(String.valueOf(System.currentTimeMillis()))   // 订单号，使用当前时间戳
                 .phone(address.getPhone())    // 手机号，在之前就已经获得的地址簿中获得
                 .consignee(address.getConsignee())    // 收货人，在之前就已经获得的地址簿中获得
+                .address(address.getDetail())   // 地址，在之前就已经获得的地址簿中获得
                 .build();
         // 复制DTO中的其他属性
         BeanUtils.copyProperties(ordersSubmitDTO, orders);
-        orderMapper.insert(orders); // 要设置useGeneratedKeys=true和keyProperty=id
 
         // 向订单明细表插入n条数据
         List<OrderDetail> orderDetails = new ArrayList<>();
@@ -101,9 +103,15 @@ public class OrderServiceImpl implements OrderService {
             OrderDetail orderDetail = new OrderDetail();
             // 将购物车数据复制到订单明细
             BeanUtils.copyProperties(cart, orderDetail);
-            orderDetail.setOrderId(orders.getId());
             orderDetails.add(orderDetail);
         }
+        orderMapper.insert(orders); // 要设置useGeneratedKeys=true和keyProperty=id
+
+        // 为每个订单详情设置订单ID（必须在订单插入后）
+        for (OrderDetail orderDetail : orderDetails) {
+            orderDetail.setOrderId(orders.getId());
+        }
+
         orderDetailMapper.insertBatch(orderDetails);
 
         // 清空该用户购物车数据
@@ -166,6 +174,15 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+        // 通过WebSocket向客户端浏览器推送消息：type orderId content
+        Map<Object, Object> map = new HashMap<>();
+        map.put("type", StatusConstant.ORDER_REMINDER); // 1 表示来单提醒，2 表示订单状态提醒
+        map.put("orderId", GetOrder.getId());
+        map.put("content", "订单号：" + number + "来单提醒");
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendAll(json);
     }
 
     /**
@@ -203,11 +220,32 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 订单详情展示
+     * @param id （Long）
+     * @return OrderVO
+     */
+    @Override
+    public OrderVO details(Long id) {
+        // 根据id查询订单，根据订单id查询订单详情
+        Orders ordersDB = orderMapper.getById(id);
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+        // 封装成OrderVO并返回
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(ordersDB, orderVO);
+        orderVO.setOrderDetailList(orderDetailList);
+
+        return orderVO;
+    }
+
+    /**
      * 取消订单
      * @param id （Long）
      */
     @Override
-    public void cancel(Long id) {
+    public void cancelByUser(Long id) {
         // 查询当前订单状态
         Orders ordersDB = orderMapper.getById(id);
         Integer Status = ordersDB.getStatus();
@@ -266,6 +304,7 @@ public class OrderServiceImpl implements OrderService {
         shoppingCartMapper.insertBatch(carts);
     }
 
+
     // 以下是管理端：
 
     /**
@@ -277,7 +316,7 @@ public class OrderServiceImpl implements OrderService {
      *   - 根据订单id获取菜品信息字符串
      */
     @Override
-    public PageResult page(OrdersPageQueryDTO ordersPageQueryDTO) {
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
         PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
         Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
         long total = page.getTotal();
@@ -286,7 +325,8 @@ public class OrderServiceImpl implements OrderService {
         // 但是这个地方需要封装成VO给前端，为什么？
         // 答：如果只返回Orders对象，管理员只能看到订单号、总金额等基本信息，无法知道具体需要准备哪些菜品。
         // 通过转换为OrderVO并添加菜品信息，管理员可以直接看到"宫保鸡丁3；麻婆豆腐1"这样的菜品明细。
-        List<OrderVO> VOs = getOrderVOList(page);
+
+        List<OrderVO> VOs = getOrderVOList(page);   // 根据page获取OrderVO列表
         return new PageResult(total, VOs);
     }
     private List<OrderVO> getOrderVOList(Page<Orders> page) {
@@ -300,8 +340,13 @@ public class OrderServiceImpl implements OrderService {
                 OrderVO orderVO = new OrderVO();
                 BeanUtils.copyProperties(orders, orderVO);
                 // 根据订单信息填充菜品信息字符串，封装VO后插入目标列表
-                String orderDishes = getOrderDishesStr(orders.getId());
-                orderVO.setOrderDishes(orderDishes);
+                try {
+                    String orderDishes = getOrderDishesStr(orders.getId());
+                    orderVO.setOrderDishes(orderDishes);
+                } catch (Exception e) {
+                    log.warn("获取订单{}的菜品详情失败: {}", orders.getId(), e.getMessage());
+                    orderVO.setOrderDishes("菜品详情获取失败");
+                }
                 list.add(orderVO);
             }
         }
@@ -313,11 +358,13 @@ public class OrderServiceImpl implements OrderService {
         if (orderDetails == null || orderDetails.isEmpty()) {
             throw new OrderBusinessException(MessageConstant.ORDER_DETAIL_NOT_FOUND);
         }
-        // 将每一条订单菜品信息拼接为字符串（格式：宫保鸡丁*3; ）
+        // 将每一条订单菜品信息拼接为字符串（格式：宫保鸡丁*3）
         List<String> orderDishList = orderDetails.stream()
-                .map(x -> x.getName() + "*" + x.getNumber() + "; ")
+                .map(x -> x.getName() + "*" + x.getNumber())
                 .toList();
-        return String.join("；", orderDishList);
+
+        // 将该订单对应的所有菜品信息拼接在一起
+        return String.join("; ", orderDishList);
     }
 
     /**
@@ -339,25 +386,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    /**
-     * 订单详情展示
-     * @param id （Long）
-     * @return OrderVO
-     */
-    @Override
-    public OrderVO details(Long id) {
-        // 根据id查询订单，根据订单id查询订单详情
-        Orders ordersDB = orderMapper.getById(id);
-        if (ordersDB == null) {
-            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-        }
-        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
-        // 封装成OrderVO并返回
-        OrderVO orderVO = new OrderVO();
-        BeanUtils.copyProperties(ordersDB, orderVO);
-        orderVO.setOrderDetailList(orderDetailList);
-        return orderVO;
-    }
+
 
     /**
      * 接单
@@ -411,7 +440,7 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersCancelDTO 取消订单参数
      */
     @Override
-    public void cancel(OrdersCancelDTO ordersCancelDTO) throws Exception {
+    public void cancelByAdmin(OrdersCancelDTO ordersCancelDTO) throws Exception {
         // 根据id查询订单，处理业务逻辑错误
         Orders ordersDB = orderMapper.getById(ordersCancelDTO.getId());
         if (ordersDB == null) {
@@ -484,6 +513,29 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    /**
+     * 用户催单
+     * @param id （Long）
+     */
+    @Override
+    public void reminder(Long id) {
+        // 根据id查询订单，处理业务逻辑错误
+        Orders ordersDB = orderMapper.getById(id);
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        if (!Objects.equals(ordersDB.getStatus(), Orders.TO_BE_CONFIRMED)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Map<Object,  Object> map = new HashMap<>();
+        map.put("type", StatusConstant.REMIND_ORDER);
+        map.put("orderId", id);
+        map.put("content", ordersDB.getNumber());
+        String message = JSONUtils.toJSONString(map);
+
+        webSocketServer.sendAll(message);
+    }
+
 
 
     // 以下是百度地图链接APi设置
@@ -491,69 +543,228 @@ public class OrderServiceImpl implements OrderService {
     private String shopAddress;
     @Value("${sky.baidu.ak}")
     private String ak;
+    @Value("${sky.delivery.max-distance:5000}")  // 默认5000米
+    private Integer maxDeliveryDistance;
+    @Value("${sky.api.retry-times:3}")  // 默认重试3次
+    private Integer apiRetryTimes;
     /**
      * 检查客户的收货地址是否超出配送范围
      * @param address 客户收货地址
      */
     private void checkOutOfRange(String address) {
-        // 调用百度地图API获取店铺和客户地址的距离
-        Map map = new HashMap();
-        map.put("address",shopAddress);
-        map.put("output","json");
-        map.put("ak",ak);
-
-        //获取店铺的经纬度坐标
-        String shopCoordinate = HttpClientUtil.doGet("https://api.map.baidu.com/geocoding/v3", map);
-
-        JSONObject jsonObject = JSON.parseObject(shopCoordinate);
-        if(!jsonObject.getString("status").equals("0")){
-            throw new OrderBusinessException("店铺地址解析失败");
+        // 输入验证
+        if (address == null || address.trim().isEmpty()) {
+            throw new OrderBusinessException("收货地址不能为空");
+        }
+        if (shopAddress == null || shopAddress.trim().isEmpty()) {
+            throw new OrderBusinessException("店铺地址配置错误");
+        }
+        if (ak == null || ak.trim().isEmpty()) {
+            throw new OrderBusinessException("百度地图API密钥配置错误");
         }
 
-        //数据解析
-        JSONObject location = jsonObject.getJSONObject("result").getJSONObject("location");
-        String lat = location.getString("lat");
-        String lng = location.getString("lng");
-        //店铺经纬度坐标 (经度,纬度)
-        String shopLngLat = lng + "," + lat;
+        try {
+            // 获取店铺坐标
+            String shopLngLat = getCoordinateWithRetry(shopAddress, "店铺地址");
 
-        map.put("address",address);
-        //获取用户收货地址的经纬度坐标
-        String userCoordinate = HttpClientUtil.doGet("https://api.map.baidu.com/geocoding/v3", map);
+            // 获取用户地址坐标
+            String userLngLat = getCoordinateWithRetry(address.trim(), "收货地址");
 
-        jsonObject = JSON.parseObject(userCoordinate);
-        if(!jsonObject.getString("status").equals("0")){
-            throw new OrderBusinessException("收货地址解析失败");
+            // 计算配送距离
+            Integer distance = calculateDistanceWithRetry(shopLngLat, userLngLat);
+
+            // 检查配送范围
+            if (distance > maxDeliveryDistance) {
+                log.warn("配送距离超出范围: {}米 > {}米", distance, maxDeliveryDistance);
+                throw new OrderBusinessException(String.format("超出配送范围，当前距离%.1f公里，最大配送距离%.1f公里",
+                    distance / 1000.0, maxDeliveryDistance / 1000.0));
+            }
+
+            log.info("配送距离检查通过: {}米", distance);
+
+        } catch (OrderBusinessException e) {
+            // 业务异常直接抛出
+            throw e;
+        } catch (Exception e) {
+            log.error("配送范围检查发生未知错误", e);
+            throw new OrderBusinessException("配送范围检查失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 带重试机制获取地址坐标
+     * @param address 地址
+     * @param addressType 地址类型（用于日志）
+     * @return 经纬度坐标字符串 "lng,lat"
+     */
+    private String getCoordinateWithRetry(String address, String addressType) {
+        Exception lastException = null;
+
+        for (int i = 0; i < apiRetryTimes; i++) {
+            try {
+                Map<String, String> params = new HashMap<>();
+                params.put("address", address);
+                params.put("output", "json");
+                params.put("ak", ak);
+
+                String response = HttpClientUtil.doGet("https://api.map.baidu.com/geocoding/v3", params);
+                log.debug("{}解析API响应 (第{}次尝试): {}", addressType, i + 1, response);
+
+                if (response == null || response.trim().isEmpty()) {
+                    throw new RuntimeException("API响应为空");
+                }
+
+                JSONObject jsonObject = JSON.parseObject(response);
+                String status = jsonObject.getString("status");
+
+                if ("0".equals(status)) {
+                    // 解析成功
+                    JSONObject result = jsonObject.getJSONObject("result");
+                    if (result == null) {
+                        throw new RuntimeException("API响应中缺少result字段");
+                    }
+
+                    JSONObject location = result.getJSONObject("location");
+                    if (location == null) {
+                        throw new RuntimeException("API响应中缺少location字段");
+                    }
+
+                    String lat = location.getString("lat");
+                    String lng = location.getString("lng");
+
+                    if (lat == null || lng == null) {
+                        throw new RuntimeException("API响应中缺少经纬度信息");
+                    }
+
+                    String coordinate = lng + "," + lat;
+                    log.info("{}坐标解析成功: {}", addressType, coordinate);
+                    return coordinate;
+
+                } else {
+                    // API返回错误
+                    String message = jsonObject.getString("message");
+                    String errorMsg = String.format("%s解析失败，status: %s, message: %s",
+                        addressType, status, message != null ? message : "未知错误");
+
+                    // 某些错误不需要重试
+                    if ("1".equals(status) || "2".equals(status)) { // 服务器内部错误或请求参数非法
+                        log.error(errorMsg);
+                        throw new OrderBusinessException(errorMsg);
+                    }
+
+                    throw new RuntimeException(errorMsg);
+                }
+
+            } catch (OrderBusinessException e) {
+                // 业务异常不重试
+                throw e;
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("{}坐标解析失败 (第{}次尝试): {}", addressType, i + 1, e.getMessage());
+
+                // 如果不是最后一次尝试，等待一段时间后重试
+                if (i < apiRetryTimes - 1) {
+                    try {
+                        Thread.sleep(1000 * (i + 1)); // 递增等待时间
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new OrderBusinessException("配送范围检查被中断");
+                    }
+                }
+            }
         }
 
-        //数据解析
-        location = jsonObject.getJSONObject("result").getJSONObject("location");
-        lat = location.getString("lat");
-        lng = location.getString("lng");
-        //用户收货地址经纬度坐标 (经度,纬度)
-        String userLngLat = lng + "," + lat;
+        // 所有重试都失败了
+        log.error("{}坐标解析失败，已重试{}次", addressType, apiRetryTimes, lastException);
+        throw new OrderBusinessException(addressType + "解析失败，请检查地址是否正确");
+    }
 
-        map.put("origin",shopLngLat);
-        map.put("destination",userLngLat);
-        map.put("steps_info","0");
+    /**
+     * 带重试机制计算两点间距离
+     * @param origin 起点坐标
+     * @param destination 终点坐标
+     * @return 距离（米）
+     */
+    private Integer calculateDistanceWithRetry(String origin, String destination) {
+        Exception lastException = null;
 
-        //路线规划
-        String json = HttpClientUtil.doGet("https://api.map.baidu.com/directionlite/v1/driving", map);
+        for (int i = 0; i < apiRetryTimes; i++) {
+            try {
+                Map<String, String> params = new HashMap<>();
+                params.put("origin", origin);
+                params.put("destination", destination);
+                params.put("steps_info", "0");
+                params.put("ak", ak);
 
-        jsonObject = JSON.parseObject(json);
-        if(!jsonObject.getString("status").equals("0")){
-            throw new OrderBusinessException("配送路线规划失败");
+                String response = HttpClientUtil.doGet("https://api.map.baidu.com/directionlite/v1/driving", params);
+                log.debug("路线规划API响应 (第{}次尝试): {}", i + 1, response);
+
+                if (response == null || response.trim().isEmpty()) {
+                    throw new RuntimeException("路线规划API响应为空");
+                }
+
+                JSONObject jsonObject = JSON.parseObject(response);
+                String status = jsonObject.getString("status");
+
+                if ("0".equals(status)) {
+                    // 解析成功
+                    JSONObject result = jsonObject.getJSONObject("result");
+                    if (result == null) {
+                        throw new RuntimeException("路线规划响应中缺少result字段");
+                    }
+
+                    JSONArray routes = result.getJSONArray("routes");
+                    if (routes == null || routes.isEmpty()) {
+                        throw new RuntimeException("路线规划响应中缺少routes信息");
+                    }
+
+                    JSONObject route = routes.getJSONObject(0);
+                    Integer distance = route.getInteger("distance");
+
+                    if (distance == null) {
+                        throw new RuntimeException("路线规划响应中缺少距离信息");
+                    }
+
+                    log.info("路线规划成功，距离: {}米", distance);
+                    return distance;
+
+                } else {
+                    // API返回错误
+                    String message = jsonObject.getString("message");
+                    String errorMsg = String.format("路线规划失败，status: %s, message: %s",
+                        status, message != null ? message : "未知错误");
+
+                    // 某些错误不需要重试
+                    if ("1".equals(status) || "2".equals(status)) {
+                        log.error(errorMsg);
+                        throw new OrderBusinessException(errorMsg);
+                    }
+
+                    throw new RuntimeException(errorMsg);
+                }
+
+            } catch (OrderBusinessException e) {
+                // 业务异常不重试
+                throw e;
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("路线规划失败 (第{}次尝试): {}", i + 1, e.getMessage());
+
+                // 如果不是最后一次尝试，等待一段时间后重试
+                if (i < apiRetryTimes - 1) {
+                    try {
+                        Thread.sleep(1000 * (i + 1)); // 递增等待时间
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new OrderBusinessException("配送范围检查被中断");
+                    }
+                }
+            }
         }
 
-        //数据解析
-        JSONObject result = jsonObject.getJSONObject("result");
-        JSONArray jsonArray = (JSONArray) result.get("routes");
-        Integer distance = (Integer) ((JSONObject) jsonArray.get(0)).get("distance");
-
-        if(distance > 5000){
-            //配送距离超过5000米
-            throw new OrderBusinessException("超出配送范围");
-        }
+        // 所有重试都失败了
+        log.error("路线规划失败，已重试{}次", apiRetryTimes, lastException);
+        throw new OrderBusinessException("配送路线规划失败，请稍后重试");
     }
 }
 

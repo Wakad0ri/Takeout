@@ -1,29 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--TakeOut：-->
+
+<!--  专题一：软件开发流程  -->
 <!--
-TakeOut：
-
     专题一：软件开发流程
-        需求分析（需求规格说明书，产品原型）  -> 设计（UI设计，数据库设计，接口设计）
-        -> 编码（项目代码，单元测试）       -> 测试（测试用例，测试报告）     -> 软件环境安装，配置
 
-    专题二：需求分析
-        一、项目介绍：
-            - 定位：专门为餐饮企业（餐厅，饭店）定制的一款软件产品
+        - 需求分析：（需求规格说明书，产品原型）
+        - 设计（UI设计，数据库设计，接口设计）
+        - 编码（项目代码，单元测试）
+        - 测试（测试用例，测试报告）     - 软件环境安装，配置
+
+    Step-One、需求分析（项目介绍）
+            一、定位：
+                专门为餐饮企业（餐厅，饭店）定制的一款软件产品
                 · 管理端 - 外卖商家使用
                 · 用户端 - 点餐用户使用
-            - 功能架构：体现项目中厌恶功能模块
+            二、功能架构：
+                体现项目中厌恶功能模块
                 · 管理段：员工管理 分类管理 菜品管理 套餐管理 订单管理 工作台 数据统计 来单提醒
                 · 用户端：微信登录 商品浏览 购物车 用户下单 微信支付 历史订单 地址管理 用户催单
-            - 产品原型：用于展示项目的业务功能，一般由产品经理进行设计
-            - 技术选型：展示项目中使用到的技术框架和中间件等
+            三、产品原型：用于展示项目的业务功能，一般由产品经理进行设计
+            四、技术选型：展示项目中使用到的技术框架和中间件等
                 · 用户层：node.js vue.js ElementUI 微信小程序 apache-echarts
                 · 网关层：Nginx
                 · 应用层：SpringBoot SpringMVC SpringTask httpclient SpringCache JWT...
                 · 数据层：MySQL Redis MyBatis...
                 · 工具：Git Maven Junit Postman
 
-    专题三： 设计
-        一、前端：管理端（Web）；用户端（小程序）
+   Step-Two、设计
+        一、前端：
+            管理端（Web）；用户端（小程序）
             前端工程基于 nginx 运行，
         二、后端：
             1、创建初始项目结构：
@@ -32,33 +38,23 @@ TakeOut：
                     - sky_pojo：实体类模块，存放一些实体类，比如员工，分类，菜品，套餐，订单，地址...
                     - sky_server：服务端模块，存放一些服务类，比如员工服务，分类服务，菜品服务，套餐服务，订单服务，地址服务...
             2、使用Git进行项目代码的版本控制：
-                - 创建Git本地仓库：
-                    在菜单找到VCS，点击创建Git仓库
-                    选择项目目录
-                    之后点击commit（提交）即可
-
-                - 创建Git远程仓库
-                    在Gitee里创建一个仓库，并复制URL
-
+                - 创建Git本地仓库：                        - 创建Git远程仓库
+                在菜单找到VCS，点击创建Git仓库               在Gitee里创建一个仓库，并复制URL
+                选择项目目录
+                之后点击commit（提交）即可
                 - 将本地文件推送到Git远程仓库
-                    在Idea中点击push，内部仓库：
-                    Wakadori    Li20050915_
-
-        三、后端数据库搭建
+                在Idea中点击push，内部仓库：
+                Wakadori    Li20050915_
+        三、数据库搭建
             通过的数据库建表语句创建数据库表结构
             employee 员工表  |  category 分类表  |  dish 菜品表  |  dish_flavor 菜品口味表  |  setmeal 套餐表  |  setmeal_dish 套餐菜品关系表
             user     用户表  |  address  地址表  |  order 订单表 |  order_detail 订单明细表 | shopping_cart 购物车表
-
         四、前后端联调：
             后端的初始工程中已经实现了登录功能，直接进行前后端联调测试即可
             - Controller：
-                · 接受并封装数据   · 调用service方法查询数据库  · 封装结果并相应
             - Service：
-                · 调用mapper查询数据库  · 密码比对            · 返回结果
             - Mapper：
-                · 封装SQL语句
             Tip：管理端发出的请求统一使用/admin  |  用户端发出的请求统一使用/user
-
         五、密码加密：
             使用：MD5加密方式对明文密码进行加密
             步骤：
@@ -67,7 +63,6 @@ TakeOut：
                 - 修改Java代码，前端提交的密码进行MD5加密后，再和数据库中密码比对
                     在EmployeeServiceImpl类中，修改login方法
                     password = DigestUtils.md5DigestAsHex(password.getBytes());
-
         六、接口设计和接口导入
             1. 前后端分离开发流程：
                 定制接口 -> 前端开发/后端开发 -> 联调 -> 提测
@@ -93,27 +88,24 @@ TakeOut：
                 为pojo所有类都加上@Schema注解
  -->
 
+<!--  专题二：Redis  -->
 <!--
-    专题四：Redis
+    专题二：Redis
         一、简介：
             基于内存的key-value结构数据库
             · 基于内存存储，读写性能高
             · 适合存储热点数据（热点商品，资讯，新闻）
             · 企业应用广泛
-
         二、Redis下载和安装
             - redis.windows.conf 配置文件
             - redis-cli.exe      Redis客户端
             - redis-server.bat   Redis服务端
             之后cmd后输入redis-server.exe redis.windows.conf
             之后用客户端输入redis-cli.exe 就可以链接到上述客户端了
-
         三、Redis 的 conf 修改
             - 设置密码： 把 requirepass foobared 的 foobared 改为自己的密码
                        之后就可以用 redis-cli.exe -h localhost -p 6379 -a 741963 来登录了
-        四、Another Redis Desktop Manager 安装
-            略
-
+        四、Another Redis Desktop Manager 安装：略
         五、Redis 的数据结构
             Redis存储的是key-value结构的数据，其中key是字符串类型，value有以下五种常用数据类型
             - String（字符串）
@@ -121,7 +113,6 @@ TakeOut：
             - Set（集合，类似于HashSet）
             - Hash（哈希，类似于HashMap）
             - ZSet（有序集合，每一个元素都会关联一个分数进行升序排序，无重复元素，类似于TreeMap）
-
         六、Redis常用命令
             - 字符串操作命令
                 · SET key value ：   设置指定key的值
@@ -154,7 +145,6 @@ TakeOut：
                 · EXISTS key seconds ：   查看key是否存在
                 · TYPE key ：   查看key的类型
                 · DEL key ：   若key存在则删除key
-
         七、在Java中使用Redis
             1. Redis的Java客户端：Jedis（主要）, Lettuce, Spring Data Redis
                Tip：Spring Data Redis 是 Spring 的一部分，对Redis进行了封装
@@ -175,12 +165,14 @@ TakeOut：
                 · 通过RedisTemplate操作Redis
 -->
 
+<!--  专题三：HttpClient 5.x  -->
 <!--
-    专题五：HttpClient 5.x
+    专题三：HttpClient 5.x
+
         一、介绍：
             HttpClient是Apache HttpComponents项目下的子项目，可以用来提供高效的，最新的、功能丰富的支持HTTP协议的客户端编程工具包
             并且它支持HTTP协议最新的版本和建议，包括HTTP/1.1、HTTP/2等
-
+            作用是创建和执行HTTP请求，并获取响应结果
         二、核心API
             - 依赖：httpclient5 5.4.4
             - 核心类
@@ -189,17 +181,15 @@ TakeOut：
                 · CloseableHttpClient：可关闭的HTTP客户端实现，用于发送HTTP请求并获得响应结果
                 · HttpGet：GET请求对象
                 · HttpPost：POST请求对象
-
-        四、发送请求步骤
+        三、发送请求步骤
             - 创建CloseableHttpClient对象（使用HttpClients.createDefault()）
             - 创建HttpGet/HttpPost请求对象
             - 调用HttpClient的execute方法发送请求（并用CloseableHttpResponse接收）
             - 获取服务器返回的状态码（结果.getCode()）
             - 获取服务器返回的数据（用HttpEntity接收 结果.getEntity()）
             - 关闭资源
-
-        五、使用案例
-            1. 关于阿里云OSSjar包
+        四、使用案例
+            1. 关于阿里云OSS jar包
                 其实阿里云OSS的jar包是包括了httpclient架包的(httpclient:4.5.13)
                 见test/java/../HttpClientTest.java
             2. 如果是Post请求，需要设置请求体
@@ -210,13 +200,14 @@ TakeOut：
                     StringEntity requestEntity = new StringEntity(json.toString(), ContentType.APPLICATION_JSON);
                 2-4. 设置请求体
                     httpPost.setEntity(requestEntity);
-
-        六、使用方面
+        五、使用方面
             为了方便使用，我们在common/../util/HttpClient5Util.java中封装了HttpClient5Util类，可以直接使用
 -->
 
+<!--  专题四、：微信小程序开发  -->
 <!--
     专题六：微信小程序开发
+
         一、前置工作
             - 微信小程序网址：https://mp.weixin.qq.com/wxamp/devprofile/get_profile?token=804997831&lang=zh_CN
               注册并获取开发者ID
@@ -231,13 +222,14 @@ TakeOut：
                 - 一个小程序页面由四个文件组成
                     · xxx.js    （页面逻辑）      · xxx.json（页面配置）
                     · xxx.wxml  （页面结构，非必须）· xxx.wxss（页面样式，非必须）
-
         三、微信登录：
             见serve开发
 -->
 
+<!--  专题五：缓存菜品  -->
 <!--
-    专题七：缓存菜品
+    专题五：缓存菜品
+
         一、问题说明：
             用户端小程序展示的菜品数据都是通过查询数据库获得，若用户端访问量比较大啧数据库访问压力大 -> 系统响应慢，用户体验差
         二、解决方案：
@@ -259,14 +251,15 @@ TakeOut：
                     · 启用禁用菜品           · 删除菜品
 -->
 
+<!--  专题六：Spring Cache  -->
 <!--
-    专题八：Spring Cache
+    专题六：Spring Cache
+
         一、简介：
             Spring Cache 是一个框架，实现了基于 注解 的缓存功能，只需要简单 的加一个注解，就能实现缓存功能
             Spring Cache提供了一层抽象，底层可以切换不同的缓存实现，例如：
                 - EhCache       - Caffeine      - Redis
             导入依赖：spring-boot-starter-cache
-
         二、常用注解：
             - @EnableCaching ：   在启动类上加，开启缓存注解功能
             - @Cacheable     ：   在方法上加，若有缓存则直接返回，若没有则执行方法并缓存返回值
@@ -299,6 +292,91 @@ TakeOut：
 
 
 -->
+
+<!--  专题七：Spring Task  -->
+<!--
+    专题七：Spring Task
+
+        一、简介：
+            Spring Task 是 Spring 框架提供的定时任务功能，可以基于注解的方式来完成定时任务
+            导入依赖：spring-boot-starter-task（已经在spring-boot-starter-parent中）
+        二、使用步骤：
+            0. 在启动类上加上 @EnableScheduling 注解
+            1. 创建定时任务类，并使用 @Component 注解进行标注
+            2. 在定时任务类中，使用 @Scheduled(cron="") 注解进行标注
+            3. 启动项目，查看定时任务是否执行
+        三、cron表达式
+            cron表达式其实就是一个字符串，通过cron表达式可以 定义任务触发的时间
+            构成规则：分成6/7个域，由空格分隔开（秒 分钟 小时 日 月 周 年(可选) ）
+            日 和 周 的互斥的
+            cron表达式在线生成器：https://cron.qqe2.com/
+ -->
+
+<!--  专题八：WebSocket  -->
+<!--
+    专题八：WebSocket
+
+        一、简介：
+            WebSocket 是基于TCP的一种新的 网络协议，实现了浏览器和服务器全双工通信——即只需要完成一次握手
+            就可以创建 持久的 连接，并进行双向数据传输
+        二、相较于HTTP：
+            - HTTP 是短连接；WebSocket 是长连接
+            - HTTP 是基于文本的，WebSocket 可以发送任意格式的数据
+            - HTTP 的通信是单向的，基于请求-响应
+            - WebSocket 支持双向通信，基于事件驱动
+        三、实现步骤：
+            0. 引入依赖：spring-boot-starter-websocket
+            1. 完成配置类：WebSocketConfiguration.java
+            2. 创建 WebSocket 端点类：websocket/WebSocketServer.java，加上注解@ServerEndpoint("/ws/{sid}")
+            3. 依次创建方法并附上注解：
+                @OnOpen（创建连接）   @OnClose（关闭连接）   @OnMessage（接收消息）
+            4. 创建测试类：WebSocketTask.java
+-->
+
+<!--  专题九：Apache 系列  -->
+<!--
+    专题九：Apache系列
+
+    Step-One：Apache ECharts
+        一、简介：
+            Apache ECharts 是一个开源的图表库，基于JavaScript实现，可以基于数据可视化进行数据的可视化展示
+            官网：https://echarts.apache.org/zh/index.html
+            下载后放在前端的静态资源目录下即可
+        二、使用场景：
+            - 统计报表
+
+    Step-Two：Apache POI
+        一、简介：
+            Apache POI 是一个处理 Microsoft Office 各种文件格式的开源项目
+            可以使用POI在Java程序中对Excel、Word、PPT进行读写操作
+        二、使用场景：
+            - 银行网银系统导出交易明细
+            - 各种业务系统导出Excel报表
+            - 批量导入业务数据
+        三、写入步骤：
+            0. 导入依赖：poi, poi-ooxml
+            1. 在内存中创建一个Excel文件：new一个XSSFWorkbook对象
+            2. 在Excel文件中创建一个Sheet页：XSSFSheet x = excel.createSheet("sheetName")
+            3. 在Sheet页中创建一行：XSSFRow row = x.createRow(0，从零开始)
+            4. 在行中创建一个单元格：XSSFCell cell = row.createCell(0，从零开始)
+            5. 在单元格.setCellValue()方法设置单元格的值
+            6. 保存Excel文件：excel.write(new FileOutputStream(file))，也要close
+            7. 关闭流：excel.close()
+        四、读取步骤：
+            0. 导入依赖：poi, poi-ooxml
+            1. 创建一个Excel文件：XSSFWorkbook excel = new XSSFWorkbook(new FileInputStream(file地址))
+            2. 获取Sheet页：XSSFSheet sheet = excel.getSheet("sheetName")
+            3. 获取最后的行号：int lastRowNum = sheet.getLastRowNum()
+            4. for获取每一行{ XSSFRow row = sheet.getRow(i); 获取单元格：
+                XSSCell cell = row.getCell(1);
+                String cellValue = cell.getStringCellValue();
+                ...
+                System.out.println(cellValue);
+                }
+            5. in和Excel都要close
+
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">

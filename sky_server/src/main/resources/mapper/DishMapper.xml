@@ -60,7 +60,7 @@
         </set>
         where id = #{id}
     </update>
-    
+
     <select id="list" resultType="com.atguigu.Entity.Dish">
         select * from dish
         <where>
@@ -75,6 +75,15 @@
             </if>
         </where>
         order by create_time desc
+    </select>
+
+    <select id="countStatus" resultType="java.lang.Integer">
+        select count(id) from dish
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
     </select>
 
 

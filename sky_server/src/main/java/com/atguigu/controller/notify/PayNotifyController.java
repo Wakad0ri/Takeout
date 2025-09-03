@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,9 +35,15 @@ public class PayNotifyController {
     private WeChatProperties weChatProperties;
 
     /**
-     * 支付成功回调
+     * 支付成功回调：
+     *      支付回调是第三方支付平台（如微信支付、支付宝）在用户完成支付后
+     *      主动向商户服务器发送支付结果通知的机制。
+     *  调用时机：
+     *      不是我们手动调用的！用户在微信/支付宝完成支付后
+     *      支付平台会自动向您配置的回调URL发送POST请求，会触发该方法
      *
-     * @param request
+     * @param request （微信支付平台）发送的请求对象
+     * @param response 响应对象
      */
     @RequestMapping("/paySuccess")
     public void paySuccessNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {

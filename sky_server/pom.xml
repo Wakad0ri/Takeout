@@ -16,6 +16,11 @@
 
     关于return Result.success()的括号里是否有参数
     看接口设计里的返回响应里是不是数据结构的data信息里有别的信息即可
+
+    设计到多表查询时，sum(od.number)一定要加上as number，不然属性为number的时候结果为null
+
+
+    GET请求不需要添加@RequestBody等请求体
 -->
 
 <!--  专题一：员工管理  -->
@@ -632,7 +637,7 @@ Function-One、用户下单：
 Function-Two、用户登录
     零、准备工作-准备临时域名
         1. 登录https://dashboard.cpolar.com/ -> 下载cpolar -> 打开cpolar文件夹 -> 打开cmd -> 输入命令：cpolar.exe authtoken +网址验证隧道码
-        2. 启动连接：在文件夹cmd -> cpolar.exe http 8080
+        2. 启动连接：在文件夹cmd -> cpolar.exe http 8080 （若要配置Task -> 更改yml）
 
     一、需求分析和设计
         1. 业务规则：
@@ -816,6 +821,152 @@ Function-Two、用户登录
         2. 创建引用获取ak
         3. yml文件中添加自定义：sky: shop : address 和 sky: baidu : ak，并在OrderServiceImpl中添加private
         4. 提供验证方法：public String checkOutOfRange(String address)
+-->
+
+<!--  专题十五：实现定时通知/业务修改  -->
+<!--
+    专题十五：实现定时通知/业务修改：定时订单状态更正
+
+    一、需求分析和设计
+        1. 业务规则：
+            - 订单未支付超过15分钟，自动取消订单
+            - 每天凌晨1点检查一次，若订单处于“派送中”状态，则修改订单状态为“已完成”
+        2. 接口设计：
+            - 根据status和orderTime查询订单数据
+            - 请求参数：status, orderTime
+            - 响应数据：List<Orders>
+            - 前置接口：根据订单数据修改订单
+    二、代码实现：
+        见 OrderTask.java
+-->
+
+<!-- 专题十六：实现来单提醒  -->
+<!--
+    专题十六：实现来单提醒/用户催单提醒
+
+    Function-One、用户来单提醒
+    一、需求分析和设计
+        1. 业务规则：
+            - 通过WebSocket实现管理端页面和服务端保持长连接状态
+            - 当客户支付后，调用WebSocket相关API实现服务端和客户端的推送消息
+            - 客户端浏览器解析服务端推送的消息，判断是来单提醒还是客户催单，进行相应消息的提示和语音播报
+            - 约定服务端发送给客户端浏览器的数据格式为JSON，字段包括：type, orderId, content（type消息类型，orderId订单id，content内容）
+    二、代码实现：
+        - 在OrderServiceImpl的paySuccess中添加如下业务
+            在更新后 创建Map对象储存type, orderId, content
+            -> String json = JSON.toJSONString(map); -> webSocketServer.sendAll(json);
+            -> 更改yml的wechat: notifyUrl的为临时域名网址/notify/paySuccess, refundNotifyUrl同理
+
+    Function-Two、用户催单提醒
+    一、需求分析和设计
+        1. 业务规则：
+            - 同上
+            - 只有订单处于“待派送”状态时，可以执行催单操作
+        2. 接口设计：
+            - 催单： Path：/order/reminder/{id}  |  Method：PUT
+
+    二、代码实现：
+        - public Result<String> reminder(@PathVariable Long id)
+
+-->
+
+<!-- 专题十七：图标统计  -->
+<!--
+
+    专题十七：图标统计
+
+    Function-One：营业额统计
+    一、需求分析和设计
+        1. 业务规则：
+            - 营业额指订单状态为已完成订单金额合计
+            - 基于可视化报表的折线图展示营业额数据，x为日期，y为营业额
+            - 根据时间选择区间，展示每天的营业额数据
+        2. 接口设计：
+            - 营业额统计： Path：/admin/report/turnoverStatistic  |  Method：GET
+            - 请求参数：begin, end
+            - 响应数据：日期列表，营业额列表
+    二、代码实现：
+        - public TurnoverReportVO turnoverStatistics(LocalDate begin, LocalDate end)
+
+    Function-Two：用户统计
+    一、需求分析和设计
+        1. 业务规则：
+            - 基于可视化报表的折线图展示用户数据，x为日期，y为用户数
+            - 根据时间选择区间，展示每天的用户总量和！新增用户数量
+        2. 接口设计：
+            - 用户统计： Path：/admin/report/userStatistic  |  Method：GET
+            - 请求参数：begin, end
+            - 响应数据：日期列表，用户数列表，新增用户数列表
+    二、代码实现：
+        - public UserReportVO userStatistics(LocalDate begin, LocalDate end)
+
+    Function-Three：订单统计
+    一、需求分析和设计
+        1. 业务规则：
+            - 有效订单 指的是订单处于“已完成”状态的订单
+            - 基于可视化报表的折线图展示 总订单，有效订单 数据，x为日期，y为订单数
+            - 根据时间选择区间，展示每天的订单数量，订单完成率
+        2. 接口设计：
+            - 订单统计： Path：/admin/report/orderStatistic  |  Method：GET
+            - 响应数据：日期列表，总订单列表，有效订单列表，订单完成率列表，订单总数，有效订单数，有效订单率
+    二、代码实现：
+        - public OrderReportVO ordersStatistics(LocalDate begin, LocalDate end)
+
+    Function-Four：销量前十商品展示
+    一、需求分析和设计
+        1. 业务规则：
+            - 根据时间选择区间，展示销量前十的商品（包括菜品和套餐）
+            - 基于可视化报表的柱状图降序展示商品销量
+            - 此处的销量为商品销售的份数
+        2. 接口设计：
+            - 销量前十商品展示： Path：/admin/report/top10  |  Method：GET
+            - 响应数据：名称列表，销量列表
+    二、代码实现：
+        - public List<SalesTop10ReportVO> getTop10(LocalDate begin, LocalDate end)
+-->
+
+<!--  专题十八：工作台  -->
+<!--
+    专题十八：工作台
+
+    Function-One：今日数据
+    一、需求分析和设计
+        1. 业务规则：
+            - 营业额：已完成的订单的总金额    - 有效订单：已完成订单数量      - 新增用户数
+            - 订单完成率     - 平均客单价：营业额/有效订单
+        2. 接口设计：
+            - 今日数据： Path：/admin/workspace/businessData  |  Method：GET
+            - 响应数据：营业额，有效订单，新增用户数，订单完成率，平均客单价
+
+    Function-Two：其他管理模块：
+    一、需求分析和设计
+        1. 业务规则：
+            - 订单 管理总览：统计 “待接单”，“待派送”，“已完成”，“已取消”，“全部订单” 数量
+            - 菜品 管理总览：统计 “停售”，“起售” 菜品数量
+            - 套餐 管理总览：统计 “停售”，“起售” 套餐数量
+        2. 接口设计：
+            - 订单 管理模块： Path：/admin/workspace/overviewOrders |  Method：GET
+              响应数据：待接单，待派送，已完成，已取消，全部订单
+            - 菜品 管理模块： Path：/admin/workspace/overviewDishes |  Method：GET
+              响应数据：停售，起售
+            - 套餐 管理模块： Path：/admin/workspace/overSetmeals   |  Method：GET
+              响应数据：停售，起售
+-->
+
+<!--  专题十九：导出运营数据Excel报表  -->
+<!--
+     专题十九：导出运营数据Excel报表
+
+     一、需求分析和设计
+        1. 业务规则：
+           - 导出最近30天的Excel报表，分为概览数据和明细数据
+           - 概览数据包括：营业额、订单完成率、新增用户数、有效订单、平均客单价
+           - 明细数据包括：日期、营业额、有效订单、订单完成率、平均客单价、新增用户数
+        2. 接口设计：
+            - 导出运营数据Excel报表： Path：/admin/report/export  |  Method：GET
+            注意：当前接口没有返回数据，因为报表输出功能本质上是文件下载，服务端会通过输出流下载到客户端浏览器、
+                 本来没参数的，但是需要一个response参数，用来返回文件下载的响应信息
+
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -52,13 +52,13 @@ sky:
     privateKeyFilePath: classpath:cert/apiclient_key.pem
     apiV3Key: 你的APIv3密钥
     weChatPayCertFilePath: classpath:cert/wechatpay_cert.pem
-    notifyUrl: http://4e98fcec.r11.vip.cpolar.cn/notify/paySuccess
-    refundNotifyUrl: http://4e98fcec.r11.vip.cpolar.cn/notify/refundSuccess
+    notifyUrl: http://41a12a0e.r8.cpolar.cn/notify/paySuccess
+    refundNotifyUrl: http://41a12a0e.r8.cpolar.cn/notify/refundSuccess
 
 # 阿里云OSS配置 - 开发环境
 aliyun:
   oss:
     endpoint: https://oss-cn-beijing.aliyuncs.com
-    access-key-id: LTAI5t5n9iYN1FT85PBbp6jU
-    access-key-secret: kaV8c679Zvp407jhPjuowiZK81m4HU
+    access-key-id: ${ALIBABA_CLOUD_ACCESS_KEY_ID:your-access-key-id}
+    access-key-secret: ${ALIBABA_CLOUD_ACCESS_KEY_SECRET:your-access-key-secret}
     bucket-name: wakadori
