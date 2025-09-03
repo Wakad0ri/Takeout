@@ -1,8 +1,8 @@
 package com.atguigu.config;
 
 import com.atguigu.interceptor.JwtTokenAdminInterceptor;
-import com.atguigu.interceptor.JwtTokenUserInterceptor;
 import com.atguigu.json.JacksonObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +15,6 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import org.springdoc.core.models.GroupedOpenApi;
 
 import java.util.List;
 
@@ -30,10 +29,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Autowired
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
 
-    // 用户端拦截器
-    @Autowired
-    private JwtTokenUserInterceptor jwtTokenUserInterceptor;
-
     /**
      * 注册自定义拦截器
      * @param registry
@@ -44,13 +39,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addInterceptor(jwtTokenAdminInterceptor)
                 .addPathPatterns("/admin/**")
                 .excludePathPatterns("/admin/employee/login");
-
-        // 注册用户端拦截器
-        registry.addInterceptor(jwtTokenUserInterceptor)
-                .addPathPatterns("/user/**")
-                .excludePathPatterns("/user/user/login")
-                // 获取店铺营业状态接口不需要登录
-                .excludePathPatterns("/user/shop/status");
     }
 
     /**
@@ -65,34 +53,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                         .title("苍穹外卖项目接口文档")
                         .version("2.0")
                         .description("苍穹外卖项目接口文档"));
-    }
-
-    /**
-     * 管理端接口分组
-     * @return
-     */
-    @Bean
-    public GroupedOpenApi adminApi() {
-        log.info("开始生成管理端接口文档分组...");
-        return GroupedOpenApi.builder()
-                .group("管理端接口")
-                .pathsToMatch("/admin/**")
-                .packagesToScan("com.atguigu.controller.admin")
-                .build();
-    }
-
-    /**
-     * 用户端接口分组
-     * @return
-     */
-    @Bean
-    public GroupedOpenApi userApi() {
-        log.info("开始生成用户端接口文档分组...");
-        return GroupedOpenApi.builder()
-                .group("用户端接口")
-                .pathsToMatch("/user/**")
-                .packagesToScan("com.atguigu.controller.user")
-                .build();
     }
 
     /**
@@ -128,10 +88,10 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         log.info("扩展消息转换器...");
         // 创建消息转换器对象
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-
+        
         // 设置对象转换器，底层使用Jackson将Java对象转为JSON
         converter.setObjectMapper(new JacksonObjectMapper());
-
+        
         // 将自定义的消息转换器加入容器中，并设置优先级
         for (int i = 0; i < converters.size(); i++) {
             if (converters.get(i) instanceof MappingJackson2HttpMessageConverter) {

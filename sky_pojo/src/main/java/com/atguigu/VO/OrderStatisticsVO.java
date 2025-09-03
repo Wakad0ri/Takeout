@@ -1,10 +1,7 @@
 package com.atguigu.VO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -17,15 +14,9 @@ import java.io.Serializable;
  *
  * 使用注解：
  * - @Data：自动生成getter、setter、equals、hashCode等方法
- * - @Builder：提供构建器模式创建对象
- * - @NoArgsConstructor：提供无参构造函数
- * - @AllArgsConstructor：提供全参构造函数
  * - @Schema：用于生成API文档
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "订单状态统计视图对象")
 public class OrderStatisticsVO implements Serializable {
 
@@ -48,5 +39,4 @@ public class OrderStatisticsVO implements Serializable {
     // 对应订单状态：4（派送中）
     @Schema(description = "派送中数量")
     private Integer deliveryInProgress;
-
 }

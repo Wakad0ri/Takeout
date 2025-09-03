@@ -71,7 +71,7 @@ public class OrderDetail implements Serializable {
     // 商品金额
     // 单份商品的金额（非总金额）
     // 使用BigDecimal确保精确计算
-    @Schema(description = "商品单价")
+    @Schema(description = "商品金额")
     private BigDecimal amount;
 
     // 商品图片
