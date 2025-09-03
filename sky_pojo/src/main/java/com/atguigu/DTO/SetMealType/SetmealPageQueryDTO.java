@@ -23,12 +23,12 @@ public class SetmealPageQueryDTO implements Serializable {
     // 当前页码
     // 从1开始的页码编号
     @Schema(description = "页码", example = "1")
-    private int page;
+    private Integer page;
 
     // 每页记录数
     // 指定每页显示的数据条数
     @Schema(description = "每页记录数", example = "10")
-    private int pageSize;
+    private Integer pageSize;
 
     // 套餐名称
     // 用于按名称进行模糊查询

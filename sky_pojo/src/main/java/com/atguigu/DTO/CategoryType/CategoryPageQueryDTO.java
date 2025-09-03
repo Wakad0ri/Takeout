@@ -1,4 +1,4 @@
-package com.atguigu.DTO.DataType;
+package com.atguigu.DTO.CategoryType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.atguigu.DTO.DataType;
+package com.atguigu.DTO.CategoryType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -23,11 +23,11 @@ public class CategoryDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     // 分类ID，修改时必填
-    @Schema(description = "主键")
+    @Schema(description = "分类ID")
     private Long id;
 
     // 分类类型（1：菜品分类，2：套餐分类）
-    @Schema(description = "类型: 1菜品分类 2套餐分类")
+    @Schema(description = "分类类型")
     private Integer type;
 
     // 分类名称
@@ -35,6 +35,6 @@ public class CategoryDTO implements Serializable {
     private String name;
 
     // 分类排序号，用于控制展示顺序，值越小排序越靠前
-    @Schema(description = "排序")
+    @Schema(description = "显示顺序")
     private Integer sort;
 }

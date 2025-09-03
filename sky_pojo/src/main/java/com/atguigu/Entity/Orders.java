@@ -35,7 +35,7 @@ public class Orders implements Serializable {
     // 用于标识订单在系统中的处理阶段
     public static final Integer PENDING_PAYMENT = 1;        // 待付款
     public static final Integer TO_BE_CONFIRMED = 2;        // 待接单
-    public static final Integer CONFIRMED = 3;              // 已接单
+    public static final Integer CONFIRMED = 3;              // 已接单,待派送
     public static final Integer DELIVERY_IN_PROGRESS = 4;   // 派送中
     public static final Integer COMPLETED = 5;              // 已完成
     public static final Integer CANCELLED = 6;              // 已取消
@@ -113,11 +113,6 @@ public class Orders implements Serializable {
     // 用户下单时的特殊要求或说明
     @Schema(description = "订单备注")
     private String remark;
-
-    // 用户名称
-    // 冗余存储，便于订单展示
-    @Schema(description = "用户名称")
-    private String userName;
 
     // 手机号码
     // 用于配送联系

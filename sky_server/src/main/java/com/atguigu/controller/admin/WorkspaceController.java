@@ -5,75 +5,75 @@ import com.atguigu.VO.BusinessDataVO;
 import com.atguigu.VO.DishOverViewVO;
 import com.atguigu.VO.OrderOverViewVO;
 import com.atguigu.VO.SetmealOverViewVO;
+import com.atguigu.service.WorkspaceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @RestController
 @RequestMapping("/admin/workspace")
 @Slf4j
+@Tag(name = "工作台管理-控制层")
 public class WorkspaceController {
+
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 工作台今日数据查询
-     * @return
+     * @return Result<BusinessDataVO>
      */
     @GetMapping("/businessData")
+    @Operation(summary = "今日数据查询")
     public Result<BusinessDataVO> businessData() {
-        // 临时返回模拟数据
-        BusinessDataVO businessDataVO = BusinessDataVO.builder()
-                .turnover(0.0)
-                .validOrderCount(0)
-                .orderCompletionRate(0.0)
-                .unitPrice(0.0)
-                .newUsers(0)
-                .build();
+        log.info("查询今日数据");
+        // 获取当前时间 -> 获取今天的最开始时刻和最结束时刻
+        LocalDate today = LocalDate.now();
+        LocalDateTime beginTime = LocalDateTime.of(today, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(today, LocalTime.MAX);
+        BusinessDataVO businessDataVO = workspaceService.businessData(beginTime, endTime);
         return Result.success(businessDataVO);
     }
 
     /**
-     * 查询订单管理数据
-     * @return
+     * 订单管理总览
+     * @return Result<OrderOverViewVO>
      */
     @GetMapping("/overviewOrders")
     public Result<OrderOverViewVO> orderOverView() {
-        // 临时返回模拟数据
-        OrderOverViewVO orderOverViewVO = OrderOverViewVO.builder()
-                .waitingOrders(0)
-                .deliveredOrders(0)
-                .completedOrders(0)
-                .cancelledOrders(0)
-                .allOrders(0)
-                .build();
+        log.info("订单信息总览");
+        OrderOverViewVO orderOverViewVO = workspaceService.orderOverView();
         return Result.success(orderOverViewVO);
     }
 
     /**
      * 查询菜品总览
-     * @return
+     * @return Result<DishOverViewVO>
      */
     @GetMapping("/overviewDishes")
     public Result<DishOverViewVO> dishOverView() {
-        // 临时返回模拟数据
-        DishOverViewVO dishOverViewVO = DishOverViewVO.builder()
-                .sold(0)
-                .discontinued(0)
-                .build();
+        log.info("查询菜品总览");
+        DishOverViewVO dishOverViewVO = workspaceService.dishOverView();
         return Result.success(dishOverViewVO);
     }
 
     /**
      * 查询套餐总览
-     * @return
+     * @return Result<SetmealOverViewVO>
      */
     @GetMapping("/overviewSetmeals")
     public Result<SetmealOverViewVO> setmealOverView() {
-        // 临时返回模拟数据
-        SetmealOverViewVO setmealOverViewVO = SetmealOverViewVO.builder()
-                .sold(0)
-                .discontinued(0)
-                .build();
+        log.info("查询套餐总览");
+        SetmealOverViewVO setmealOverViewVO = workspaceService.setmealOverView();
         return Result.success(setmealOverViewVO);
     }
-} 
+
+}
