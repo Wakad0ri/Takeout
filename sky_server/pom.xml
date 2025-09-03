@@ -222,8 +222,8 @@
                     sky:
                       alioss:
                         endpoint: https://oss-cn-beijing.aliyuncs.com   | dev中https://oss-cn-beijing.aliyuncs.com
-                        access-key-id: ${ALIYUN_ACCESS_KEY_ID:LTAI5tP}  | dev中
-                        access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:<KEY>}    | dev中
+                        access-key-id: ${ALIYUN_ACCESS_KEY_ID:LTAI5tP}  | dev中LTAI5t5n9iYN1FT85PBbp6jU
+                        access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:<KEY>}    | dev中kaV8c679Zvp407jhPjuowiZK81m4HU
                         bucket-name: ${ALIYUN_OSS_BUCKET:sky-bucket}    | dev中wakadori
 
                 - 新建文件上传类：见sky_common/../utils/AliOssUtil.java
