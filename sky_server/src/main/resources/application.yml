@@ -4,8 +4,14 @@ server:
 spring:
   profiles:
     active: dev
+    # 支持多配置文件，优先加载本地配置
+    include: dev-local
   main:
     allow-circular-references: true
+  config:
+    # 配置文件加载策略：本地配置优先
+    import:
+      - optional:classpath:application-dev-local.yml
   datasource:
     druid:
       driver-class-name: ${sky.datasource.driver-class-name}
